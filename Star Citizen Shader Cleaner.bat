@@ -1,208 +1,226 @@
 @echo off
-title Enhanced Cache Cleaner for Gaming
-echo Testing - Script started successfully
-echo.
-echo ========================================
-echo  Enhanced Cache Cleaner for Gaming
-echo  AMD and NVIDIA GPU + Star Citizen
-echo ========================================
-echo.
-echo RECOMMENDATIONS BEFORE CLEANING:
-echo.
-echo 1. CLOSE ALL GAMES AND APPLICATIONS
-echo    - Ensure no games or graphics applications are running
-echo    - Close Steam, Epic Games, and other game launchers
-echo    - Exit any streaming or recording software
-echo.
-echo 2. WHEN TO USE THIS TOOL:
-echo    - After AMD or NVIDIA driver updates
-echo    - After Star Citizen game patches/updates
-echo    - When experiencing crashes, stuttering, or visual artifacts
-echo    - When loading times have dramatically increased
-echo    - When free disk space is low
-echo.
-echo 3. WHAT THIS TOOL CLEANS:
-echo    - AMD shader caches (DxCache, VkCache, etc.)
-echo    - NVIDIA shader caches (DXCache, GLCache)
-echo    - Star Citizen shader and USER folders
-echo    - Windows temporary files and DirectX cache
-echo.
-echo 4. EXPECTED BEHAVIOR AFTER CLEANING:
-echo    - Temporary performance dips during first gameplay
-echo    - Longer initial loading times as shaders rebuild
-echo    - Star Citizen may need to recompile shaders
-echo    - Settings may reset if USER folder is deleted
-echo.
-echo 5. BACKUP RECOMMENDATION:
-echo    - Back up Star Citizen keybindings if customized
-echo    - Located at: StarCitizen\LIVE\USER\Controls\Mappings
-echo.
-echo ========================================
-echo.
-echo Press any key to continue with cache cleaning...
-pause >nul
-cls
-echo.
-echo Starting cache cleanup process...
+setlocal EnableDelayedExpansion
+
+:: Shader Cache Nuking Script
+:: Clears shader caches for Star Citizen, NVIDIA, and AMD
+:: Run as Administrator for best results
+
+echo ============================================
+echo        SHADER CACHE NUKING SCRIPT
+echo ============================================
 echo.
 
-REM ===== NVIDIA GPU Cache Cleaning =====
-echo [NVIDIA] Cleaning NVIDIA GPU shader caches...
-
-if exist "c:\users\%USERNAME%\Appdata\Local\NVIDIA\DXCache\*.*" (
-    echo Deleting Nvidia DX cache...
-    del "c:\users\%USERNAME%\Appdata\Local\NVIDIA\DXCache\*.*" /q >nul 2>&1
-    echo Nvidia DX cache deletion completed
-) else (
-    echo Nvidia DX cache directory not found or already empty
+:: Check for admin rights
+net session >nul 2>&1
+if %errorlevel% neq 0 (
+    echo [WARNING] Not running as Administrator.
+    echo           Some caches may not be fully cleared.
+    echo.
 )
 
-if exist "c:\users\%USERNAME%\Appdata\Local\NVIDIA\GLCache\*.*" (
-    echo Deleting Nvidia GL cache...
-    del "c:\users\%USERNAME%\Appdata\Local\NVIDIA\GLCache\*.*" /q >nul 2>&1
-    echo Nvidia GL cache deletion completed
-) else (
-    echo Nvidia GL cache directory not found or already empty
-)
+:: Initialize counters
+set "cleared=0"
+set "failed=0"
+set "skipped=0"
 
-echo.
+:: ==========================================
+:: STAR CITIZEN SHADERS
+:: ==========================================
+echo [STAR CITIZEN]
+echo --------------
 
-REM ===== AMD GPU Cache Cleaning =====
-echo [AMD] Cleaning AMD GPU shader caches...
+set "SC_SHADER_PATH=%LOCALAPPDATA%\Star Citizen"
 
-if exist "c:\users\%USERNAME%\Appdata\Local\AMD\DxCache\" (
-    echo Deleting AMD DX cache...
-    del "c:\users\%USERNAME%\Appdata\Local\AMD\DxCache\*.*" /q >nul 2>&1
-    echo AMD DX cache deletion completed
-) else (
-    echo AMD DX cache directory not found
-)
-
-if exist "c:\users\%USERNAME%\Appdata\Local\AMD\DXCache\" (
-    echo Deleting AMD DXCache alternate...
-    del "c:\users\%USERNAME%\Appdata\Local\AMD\DXCache\*.*" /q >nul 2>&1
-    echo AMD DXCache deletion completed
-) else (
-    echo AMD DXCache directory not found
-)
-
-if exist "c:\users\%USERNAME%\Appdata\Local\AMD\Dx9Cache\" (
-    echo Deleting AMD DX9 cache...
-    del "c:\users\%USERNAME%\Appdata\Local\AMD\Dx9Cache\*.*" /q >nul 2>&1
-    echo AMD DX9 cache deletion completed
-) else (
-    echo AMD DX9 cache directory not found
-)
-
-if exist "c:\users\%USERNAME%\Appdata\Local\AMD\VkCache\" (
-    echo Deleting AMD Vulkan cache...
-    del "c:\users\%USERNAME%\Appdata\Local\AMD\VkCache\*.*" /q >nul 2>&1
-    echo AMD Vulkan cache deletion completed
-) else (
-    echo AMD Vulkan cache directory not found
-)
-
-echo.
-
-REM ===== Star Citizen Cache Cleaning =====
-echo [STAR CITIZEN] Cleaning Star Citizen caches...
-
-if exist "c:\users\%USERNAME%\Appdata\Local\Star Citizen\" (
-    echo Deleting Star Citizen Shader cache...
-    del "c:\users\%USERNAME%\Appdata\Local\Star Citizen\*.*" /q >nul 2>&1
-    echo Star Citizen Shader cache deletion completed
-) else (
-    echo Star Citizen Shader cache directory not found
-)
-
-REM ===== Star Citizen USER Folder (Contains Settings!) =====
-echo.
-echo WARNING: The next step will delete Star Citizen USER folder
-echo This contains your keybindings and game settings!
-echo If you do not want to lose your keybindings, cancel this step,
-echo and make sure to export your keybindings from the game and
-echo store it in a separate folder.
-echo.
-set /p choice="Delete Star Citizen USER folder? (y/N): "
-if /i "%choice%"=="y" (
-    if exist "C:\Program Files\Roberts Space Industries\StarCitizen\LIVE\USER\" (
-        echo Deleting Star Citizen USER folder...
-        del "C:\Program Files\Roberts Space Industries\StarCitizen\LIVE\USER\*.*" /q >nul 2>&1
-        echo Star Citizen USER folder deletion completed
+if exist "%SC_SHADER_PATH%" (
+    echo   Found: %SC_SHADER_PATH%
+    
+    :: Clear shaders folder
+    if exist "%SC_SHADER_PATH%\shaders" (
+        echo   Clearing shaders folder...
+        rd /s /q "%SC_SHADER_PATH%\shaders" 2>nul
+        if !errorlevel! equ 0 (
+            echo   [OK] shaders cleared
+            set /a cleared+=1
+        ) else (
+            echo   [FAIL] Could not clear shaders
+            set /a failed+=1
+        )
     ) else (
-        echo Star Citizen USER folder not found
+        echo   [SKIP] shaders folder not found
+        set /a skipped+=1
+    )
+    
+    :: Clear sc_shader_cache (alternative location in some versions)
+    for /d %%D in ("%SC_SHADER_PATH%\*") do (
+        if exist "%%D\shaders" (
+            echo   Clearing %%~nxD\shaders...
+            rd /s /q "%%D\shaders" 2>nul
+            if !errorlevel! equ 0 (
+                echo   [OK] %%~nxD\shaders cleared
+                set /a cleared+=1
+            )
+        )
     )
 ) else (
-    echo Skipping Star Citizen USER folder deletion
+    echo   [SKIP] Star Citizen folder not found
+    set /a skipped+=1
 )
 
-REM ===== RSI Launcher Cache =====
-if exist "%appdata%\rsilauncher\" (
-    echo Deleting RSI Launcher cache...
-    del "%appdata%\rsilauncher\*.*" /q >nul 2>&1
-    echo RSI Launcher cache deletion completed
+echo.
+
+:: ==========================================
+:: NVIDIA SHADERS
+:: ==========================================
+echo [NVIDIA]
+echo --------
+
+:: NVIDIA DX Cache
+set "NV_DXCACHE=%LOCALAPPDATA%\NVIDIA\DXCache"
+if exist "%NV_DXCACHE%" (
+    echo   Clearing DXCache...
+    rd /s /q "%NV_DXCACHE%" 2>nul
+    mkdir "%NV_DXCACHE%" 2>nul
+    echo   [OK] DXCache cleared
+    set /a cleared+=1
 ) else (
-    echo RSI Launcher cache directory not found
+    echo   [SKIP] DXCache not found
+    set /a skipped+=1
 )
 
-echo.
-
-REM ===== Windows System Cache Cleaning =====
-echo [WINDOWS] Cleaning Windows temporary files...
-
-if exist "%temp%\*.*" (
-    echo Deleting user temp files...
-    del "%temp%\*.*" /q >nul 2>&1
-    echo User temp files deletion completed
+:: NVIDIA GL Cache
+set "NV_GLCACHE=%LOCALAPPDATA%\NVIDIA\GLCache"
+if exist "%NV_GLCACHE%" (
+    echo   Clearing GLCache...
+    rd /s /q "%NV_GLCACHE%" 2>nul
+    mkdir "%NV_GLCACHE%" 2>nul
+    echo   [OK] GLCache cleared
+    set /a cleared+=1
 ) else (
-    echo User temp directory not found or empty
+    echo   [SKIP] GLCache not found
+    set /a skipped+=1
 )
+
+:: NVIDIA Compute Cache
+set "NV_COMPUTE=%APPDATA%\NVIDIA\ComputeCache"
+if exist "%NV_COMPUTE%" (
+    echo   Clearing ComputeCache...
+    rd /s /q "%NV_COMPUTE%" 2>nul
+    mkdir "%NV_COMPUTE%" 2>nul
+    echo   [OK] ComputeCache cleared
+    set /a cleared+=1
+) else (
+    echo   [SKIP] ComputeCache not found
+    set /a skipped+=1
+)
+
+:: NVIDIA Temp Cache
+set "NV_TEMP=%TEMP%\NVIDIA Corporation\NV_Cache"
+if exist "%NV_TEMP%" (
+    echo   Clearing NV_Cache (temp)...
+    rd /s /q "%NV_TEMP%" 2>nul
+    echo   [OK] NV_Cache cleared
+    set /a cleared+=1
+) else (
+    echo   [SKIP] NV_Cache not found
+    set /a skipped+=1
+)
+
 echo.
-echo ========================================
-echo  Cache cleanup completed successfully!
-echo ========================================
+
+:: ==========================================
+:: AMD SHADERS
+:: ==========================================
+echo [AMD]
+echo -----
+
+:: AMD DX Cache
+set "AMD_DXCACHE=%LOCALAPPDATA%\AMD\DxCache"
+if exist "%AMD_DXCACHE%" (
+    echo   Clearing DxCache...
+    rd /s /q "%AMD_DXCACHE%" 2>nul
+    mkdir "%AMD_DXCACHE%" 2>nul
+    echo   [OK] DxCache cleared
+    set /a cleared+=1
+) else (
+    echo   [SKIP] DxCache not found
+    set /a skipped+=1
+)
+
+:: AMD GL Cache
+set "AMD_GLCACHE=%LOCALAPPDATA%\AMD\GLCache"
+if exist "%AMD_GLCACHE%" (
+    echo   Clearing GLCache...
+    rd /s /q "%AMD_GLCACHE%" 2>nul
+    mkdir "%AMD_GLCACHE%" 2>nul
+    echo   [OK] GLCache cleared
+    set /a cleared+=1
+) else (
+    echo   [SKIP] GLCache not found
+    set /a skipped+=1
+)
+
+:: AMD Vulkan Cache
+set "AMD_VKCACHE=%LOCALAPPDATA%\AMD\VkCache"
+if exist "%AMD_VKCACHE%" (
+    echo   Clearing VkCache...
+    rd /s /q "%AMD_VKCACHE%" 2>nul
+    mkdir "%AMD_VKCACHE%" 2>nul
+    echo   [OK] VkCache cleared
+    set /a cleared+=1
+) else (
+    echo   [SKIP] VkCache not found
+    set /a skipped+=1
+)
+
+:: AMD Shader Cache (alternative location)
+set "AMD_SHADER=%LOCALAPPDATA%\AMD\Dx9Cache"
+if exist "%AMD_SHADER%" (
+    echo   Clearing Dx9Cache...
+    rd /s /q "%AMD_SHADER%" 2>nul
+    mkdir "%AMD_SHADER%" 2>nul
+    echo   [OK] Dx9Cache cleared
+    set /a cleared+=1
+) else (
+    echo   [SKIP] Dx9Cache not found
+    set /a skipped+=1
+)
+
 echo.
+
+:: ==========================================
+:: DIRECTX SHADER CACHE (SYSTEM)
+:: ==========================================
+echo [DIRECTX SYSTEM CACHE]
+echo ----------------------
+
+set "DX_CACHE=%LOCALAPPDATA%\D3DSCache"
+if exist "%DX_CACHE%" (
+    echo   Clearing D3DSCache...
+    rd /s /q "%DX_CACHE%" 2>nul
+    mkdir "%DX_CACHE%" 2>nul
+    echo   [OK] D3DSCache cleared
+    set /a cleared+=1
+) else (
+    echo   [SKIP] D3DSCache not found
+    set /a skipped+=1
+)
+
+echo.
+
+:: ==========================================
+:: SUMMARY
+:: ==========================================
+echo ============================================
+echo                  SUMMARY
+echo ============================================
+echo   Cleared: %cleared%
+echo   Skipped: %skipped%
+echo   Failed:  %failed%
+echo ============================================
+echo.
+echo NOTE: First game launch after clearing will
+echo       have longer load times and potential
+echo       stutter as shaders recompile.
+echo.
+
 pause
-cls
-echo.
-echo.
-echo IMPORTANT POST-CLEANUP INFORMATION:
-echo.
-echo EXPECTED PERFORMANCE CHANGES:
-echo - Shader caches will rebuild automatically on next game launch
-echo - First 5-10 minutes of gameplay may have reduced performance
-echo - Loading times may be longer initially as shaders recompile
-echo - Performance should return to normal or improve after rebuild
-echo.
-echo NEXT STEPS RECOMMENDED:
-echo 1. Restart your computer for optimal results
-echo 2. Launch games one at a time to rebuild shader caches
-echo 3. Be patient during first gameplay sessions
-echo 4. Monitor for improvements in crashes/stuttering
-echo.
-echo STAR CITIZEN SPECIFIC:
-echo - If USER folder was deleted, reconfigure your settings
-echo - Restore any backed-up keybindings if needed
-echo - First launch may take significantly longer than usual
-echo.
-echo If problems persist after cache clearing:
-echo - Update your GPU drivers (AMD/NVIDIA)
-echo - Verify game file integrity through launchers
-echo - Check for Windows updates
-echo ========================================
-echo.
-echo.
-set /p restart="Do you want to restart your computer now? (Y/N): "
-if /i "%restart%"=="y" (
-    echo.
-    echo Restarting computer in 5 seconds...
-    echo Press Ctrl+C to cancel if you changed your mind!
-    timeout /t 5
-    shutdown /r /t 0
-) else (
-    echo.
-    echo Remember to restart your computer manually when convenient.
-    echo.
-    echo Press any key to exit...
-    pause >nul
-)
