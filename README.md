@@ -3,10 +3,10 @@ CIG recommends deleting shader caches when experiencing FPS drops or visual glit
 These driver caches accumulate corrupted or outdated compiled shaders over time, especially after game patches. The result: stuttering, lower framerates, and longer load times.
 
 The Solution
-  Shader Cache Nuke is a lightweight utility that performs a comprehensive shader cache cleanup:
-  Star Citizen — All shader data including version-specific folders (automatically handles new patch folders)
-    NVIDIA — DXCache, GLCache, ComputeCache, NV_Cache
-    AMD — DxCache, GLCache, VkCache, Dx9Cache
+  Shader Cache Nuke is a lightweight utility that performs a comprehensive shader cache cleanup:\\
+  Star Citizen — All shader data including version-specific folders (automatically handles new patch folders)\\
+    NVIDIA — DXCache, GLCache, ComputeCache, NV_Cache\\
+    AMD — DxCache, GLCache, VkCache, Dx9Cache\\
     DirectX — System-wide D3DSCache
 
 Features:
