@@ -27,3 +27,8 @@ Recommendation: Expand the Launcher's "Delete Shaders" functionality to include:
   Optional system restart prompt after deletion
   A brief explanation of why this helps (corrupted shaders after patches)
 This could reduce support tickets, improve the new player experience after patches, and eliminate the need for third-party tools like this one.
+
+Please note that this is my first ever Python project, written in PyCharm. And no, i did not do the print("hello world") , that was actually my second project...   sorry... 
+this whole project was coded with assistance from Claude 4.5, and with close to zero pre-existing coding knowledge.
+
+If you want to give feedback, and feedback is something i welcome, please be as precise and descriptive as possible, as i am unfamiliar with most coding terms.
