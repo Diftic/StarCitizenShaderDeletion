@@ -20,7 +20,7 @@ Features:
 Results
   On my system (RTX 4070 Ti), clearing all shader caches resulted in a 20% FPS increase. Your results may vary depending on how long since your last clean and your specific hardware configuration.
 
-📣 Suggestion to CIG
+📣 Suggestion to CIG;
 The RSI Launcher's shader deletion is a good start, but it's incomplete. Players experiencing performance issues often don't realize that driver-level caches are a contributing factor.
 Recommendation: Expand the Launcher's "Delete Shaders" functionality to include:
   NVIDIA/AMD driver shader caches (with user consent)
