@@ -6,7 +6,9 @@ With dynamic Star Citizen subfolder selection and GitHub update checking
 """
 
 import os
+import re
 import shutil
+import webbrowser
 import winreg
 import subprocess
 import tkinter as tk
@@ -29,8 +31,16 @@ class ShaderNukeApp:
         self.root.resizable(True, True)
 
         # Setup paths
-        self.local_appdata = Path(os.environ.get("LOCALAPPDATA", ""))
-        self.program_data = Path(os.environ.get("PROGRAMDATA", ""))
+        try:
+            self.local_appdata = Path(os.environ["LOCALAPPDATA"])
+            self.program_data = Path(os.environ["PROGRAMDATA"])
+        except KeyError as e:
+            messagebox.showerror(
+                "Error",
+                f"Required environment variable missing: {e}\nCannot run on this system.",
+            )
+            root.destroy()
+            return
         self.sc_path = self.local_appdata / "star citizen"
 
         # Cache definitions for static caches (NVIDIA, AMD, DirectX)
@@ -100,7 +110,7 @@ class ShaderNukeApp:
             value, _ = winreg.QueryValueEx(key, "NVCachePath")
             winreg.CloseKey(key)
             return Path(value)
-        except (WindowsError, FileNotFoundError, OSError):
+        except OSError:
             return None
 
     def _get_folder_size(self, path: Path) -> int:
@@ -129,31 +139,35 @@ class ShaderNukeApp:
             return f"{size_bytes / (1024 * 1024 * 1024):.2f} GB"
 
     def _scan_sc_subfolders(self):
-        """Scan Star Citizen folder for subfolders and populate UI."""
-        # Clear existing
+        """Show a placeholder and kick off a background scan of SC subfolders."""
         self.sc_subfolders = []
         self.sc_cache_vars = {}
 
-        # Clear the SC frame contents
         for widget in self.sc_inner_frame.winfo_children():
             widget.destroy()
 
+        self.sc_total_label.config(text="Total: Scanning...")
+        ttk.Label(self.sc_inner_frame, text="Scanning...", foreground="gray").grid(row=0, column=0)
+
+        thread = threading.Thread(target=self._scan_sc_subfolders_worker, daemon=True)
+        thread.start()
+
+    def _scan_sc_subfolders_worker(self):
+        """Background worker: enumerate SC subfolders and compute sizes."""
         if not self.sc_path.exists():
-            ttk.Label(self.sc_inner_frame, text="(folder not found)", foreground="gray").grid(row=0, column=0)
+            self.root.after(0, self._populate_sc_ui, None, "not_found")
             return
 
-        # Scan for subfolders
         try:
             subfolders = [f for f in self.sc_path.iterdir() if f.is_dir()]
         except (PermissionError, OSError):
-            ttk.Label(self.sc_inner_frame, text="(access denied)", foreground="red").grid(row=0, column=0)
+            self.root.after(0, self._populate_sc_ui, None, "access_denied")
             return
 
         if not subfolders:
-            ttk.Label(self.sc_inner_frame, text="(empty)", foreground="gray").grid(row=0, column=0)
+            self.root.after(0, self._populate_sc_ui, None, "empty")
             return
 
-        # Sort: shader folders first (contain version numbers), then others
         def sort_key(p):
             name = p.name.lower()
             # Shader folders typically start with "starcitizen_"
@@ -166,34 +180,48 @@ class ShaderNukeApp:
 
         subfolders.sort(key=sort_key)
 
-        # Create checkboxes for each subfolder
-        row = 0
+        results = []
         for folder_path in subfolders:
-            folder_name = folder_path.name
             folder_size = self._get_folder_size(folder_path)
-            self.sc_subfolders.append((folder_name, folder_path, folder_size))
+            results.append((folder_path.name, folder_path, folder_size))
 
-            # Create checkbox variable - default ON for shader folders, OFF for crashes
+        self.root.after(0, self._populate_sc_ui, results, None)
+
+    def _populate_sc_ui(self, results: list | None, error: str | None):
+        """Main-thread callback: populate SC subfolder checkboxes from scan results."""
+        for widget in self.sc_inner_frame.winfo_children():
+            widget.destroy()
+
+        if error == "not_found":
+            ttk.Label(self.sc_inner_frame, text="(folder not found)", foreground="gray").grid(row=0, column=0)
+            self.sc_total_label.config(text="Total: --")
+            return
+        if error == "access_denied":
+            ttk.Label(self.sc_inner_frame, text="(access denied)", foreground="red").grid(row=0, column=0)
+            self.sc_total_label.config(text="Total: --")
+            return
+        if error == "empty" or not results:
+            ttk.Label(self.sc_inner_frame, text="(empty)", foreground="gray").grid(row=0, column=0)
+            self.sc_total_label.config(text="Total: 0 B")
+            return
+
+        self.sc_subfolders = results
+        self.sc_cache_vars = {}
+
+        for row, (folder_name, folder_path, folder_size) in enumerate(results):
             is_shader = folder_name.lower().startswith("starcitizen_")
             var = tk.BooleanVar(value=is_shader)
             self.sc_cache_vars[folder_name] = var
 
-            # Checkbox
             cb = ttk.Checkbutton(self.sc_inner_frame, text=folder_name, variable=var)
             cb.grid(row=row, column=0, sticky="w")
 
-            # Size label
-            size_str = self._format_size(folder_size)
-            size_label = ttk.Label(self.sc_inner_frame, text=size_str, foreground="gray")
+            size_label = ttk.Label(self.sc_inner_frame, text=self._format_size(folder_size), foreground="gray")
             size_label.grid(row=row, column=1, sticky="e", padx=(10, 5))
 
-            # Existence indicator (always green since we scanned existing folders)
             indicator = ttk.Label(self.sc_inner_frame, text="●", foreground="green")
             indicator.grid(row=row, column=2, sticky="e")
 
-            row += 1
-
-        # Update total size label
         total_size = sum(s[2] for s in self.sc_subfolders)
         self.sc_total_label.config(text=f"Total: {self._format_size(total_size)}")
 
@@ -333,6 +361,10 @@ class ShaderNukeApp:
         self.log_text.see(tk.END)
         self.log_text.configure(state="disabled")
 
+    def _log_safe(self, message: str, tag: str = None):
+        """Thread-safe wrapper for _log — use from background threads."""
+        self.root.after(0, lambda: self._log(message, tag))
+
     def _clear_log(self):
         """Clear the log."""
         self.log_text.configure(state="normal")
@@ -417,10 +449,15 @@ class ShaderNukeApp:
         try:
             if path.exists() and not any(path.iterdir()):
                 path.rmdir()
-                if recreate:
-                    path.mkdir(parents=True, exist_ok=True)
         except (PermissionError, OSError):
             pass
+
+        # Re-create the folder separately so it always runs even if rmdir failed
+        if recreate:
+            try:
+                path.mkdir(parents=True, exist_ok=True)
+            except (PermissionError, OSError):
+                pass
 
         mb_freed = bytes_freed / (1024 * 1024)
 
@@ -454,88 +491,88 @@ class ShaderNukeApp:
 
     def _nuke_thread(self):
         """Nuke operation running in separate thread."""
-        self._clear_log()
+        self.root.after(0, self._clear_log)
 
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self._log(f"{'=' * 50}", "header")
-        self._log(f"  SHADER CACHE NUKE v{VERSION} - {timestamp}", "header")
-        self._log(f"{'=' * 50}", "header")
-        self._log("", "info")
+        self._log_safe(f"{'=' * 50}", "header")
+        self._log_safe(f"  SHADER CACHE NUKE v{VERSION} - {timestamp}", "header")
+        self._log_safe(f"{'=' * 50}", "header")
+        self._log_safe("", "info")
 
         stats = {"cleared": 0, "skipped": 0, "failed": 0, "not_selected": 0}
 
         # === Star Citizen subfolders ===
-        self._log("[STAR CITIZEN]", "header")
-        self._log("-" * 14, "info")
+        self._log_safe("[STAR CITIZEN]", "header")
+        self._log_safe("-" * 14, "info")
 
         if not self.sc_subfolders:
-            self._log("  (no subfolders found)", "info")
+            self._log_safe("  (no subfolders found)", "info")
         else:
             for folder_name, folder_path, _ in self.sc_subfolders:
                 if folder_name not in self.sc_cache_vars:
                     continue
 
                 if not self.sc_cache_vars[folder_name].get():
-                    self._log(f"  [--] {folder_name} (not selected)", "info")
+                    self._log_safe(f"  [--] {folder_name} (not selected)", "info")
                     stats["not_selected"] += 1
                     continue
 
                 if not folder_path.exists():
-                    self._log(f"  [SKIP] {folder_name} - not found", "skip")
+                    self._log_safe(f"  [SKIP] {folder_name} - not found", "skip")
                     stats["skipped"] += 1
                     continue
 
-                self._log(f"  Clearing {folder_name}...")
+                self._log_safe(f"  Clearing {folder_name}...")
                 success, message = self._clear_folder(folder_path, recreate=False)
 
                 if success:
-                    self._log(f"  [OK] {folder_name} - {message}", "ok")
+                    self._log_safe(f"  [OK] {folder_name} - {message}", "ok")
                     stats["cleared"] += 1
                 else:
-                    self._log(f"  [FAIL] {folder_name} - {message}", "fail")
+                    self._log_safe(f"  [FAIL] {folder_name} - {message}", "fail")
                     stats["failed"] += 1
 
-        self._log("", "info")
+        self._log_safe("", "info")
 
         # === Static caches (NVIDIA, AMD, DirectX) ===
         for category, caches in self.static_cache_definitions.items():
-            self._log(f"[{category.upper()}]", "header")
-            self._log("-" * len(category), "info")
+            self._log_safe(f"[{category.upper()}]", "header")
+            self._log_safe("-" * 14, "info")
 
             for cache_id, (name, path, recreate) in caches.items():
                 if not self.static_cache_vars[cache_id].get():
-                    self._log(f"  [--] {name} (not selected)", "info")
+                    self._log_safe(f"  [--] {name} (not selected)", "info")
                     stats["not_selected"] += 1
                     continue
 
                 if not path.exists():
-                    self._log(f"  [SKIP] {name} - not found", "skip")
+                    self._log_safe(f"  [SKIP] {name} - not found", "skip")
                     stats["skipped"] += 1
                     continue
 
-                self._log(f"  Clearing {name}...")
+                self._log_safe(f"  Clearing {name}...")
                 success, message = self._clear_folder(path, recreate)
 
                 if success:
-                    self._log(f"  [OK] {name} - {message}", "ok")
+                    self._log_safe(f"  [OK] {name} - {message}", "ok")
                     stats["cleared"] += 1
                 else:
-                    self._log(f"  [FAIL] {name} - {message}", "fail")
+                    self._log_safe(f"  [FAIL] {name} - {message}", "fail")
                     stats["failed"] += 1
 
-            self._log("", "info")
+            self._log_safe("", "info")
 
         # Summary
-        self._log(f"{'=' * 50}", "header")
-        self._log("  SUMMARY", "header")
-        self._log(f"{'=' * 50}", "header")
-        self._log(f"  Cleared:      {stats['cleared']}", "ok" if stats['cleared'] > 0 else "info")
-        self._log(f"  Skipped:      {stats['skipped']}", "skip" if stats['skipped'] > 0 else "info")
-        self._log(f"  Failed:       {stats['failed']}", "fail" if stats['failed'] > 0 else "info")
-        self._log(f"  Not selected: {stats['not_selected']}", "info")
-        self._log("", "info")
-        self._log("NOTE: First game launch will have longer load", "info")
-        self._log("      times as shaders recompile.", "info")
+        self._log_safe(f"{'=' * 50}", "header")
+        self._log_safe("  SUMMARY", "header")
+        self._log_safe(f"{'=' * 50}", "header")
+        self._log_safe(f"  Cleared:      {stats['cleared']}", "ok" if stats['cleared'] > 0 else "info")
+        self._log_safe(f"  Skipped:      {stats['skipped']}", "skip" if stats['skipped'] > 0 else "info")
+        self._log_safe(f"  Failed:       {stats['failed']}", "fail" if stats['failed'] > 0 else "info")
+        self._log_safe(f"  Not selected: {stats['not_selected']}", "info")
+        self._log_safe("", "info")
+        self._log_safe("NOTE: First game launch will have longer load", "info")
+        self._log_safe("      times as shaders recompile.", "info")
 
         self.root.after(0, lambda: self.nuke_button.configure(state="normal"))
         self.root.after(0, self._scan_sc_subfolders)
@@ -561,6 +598,8 @@ class ShaderNukeApp:
                 self._log("", "info")
                 self._log("Computer will restart in 10 seconds...", "header")
                 self._log("To cancel: open CMD and run 'shutdown /a'", "info")
+            except subprocess.CalledProcessError:
+                messagebox.showerror("Error", "Could not initiate restart.\nTry running the application as administrator.")
             except Exception as e:
                 messagebox.showerror("Error", f"Could not initiate restart:\n{e}")
 
@@ -595,7 +634,7 @@ class ShaderNukeApp:
         Returns: >0 if v1 > v2, <0 if v1 < v2, 0 if equal
         """
         def parse(v):
-            return [int(x) for x in v.split(".") if x.isdigit()]
+            return [int(x) for x in re.split(r"[.\-]", v) if x.isdigit()]
 
         parts1 = parse(v1)
         parts2 = parse(v2)
@@ -627,7 +666,6 @@ class ShaderNukeApp:
 
     def _open_release_page(self, url: str):
         """Open release page in browser."""
-        import webbrowser
         webbrowser.open(url)
 
 
