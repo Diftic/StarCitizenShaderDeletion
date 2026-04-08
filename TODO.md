@@ -2,6 +2,8 @@
 
 ## In Progress / Next
 
+- [ ] Verify GitHub Pages landing page renders correctly at `https://diftic.github.io/StarCitizenShaderDeletion/`
+
 - [ ] WCAG contrast pass for light mode log tag colours (`good`/`warning`/`issue` hardcoded hex values; move to `THEMES` dict)
 - [ ] Threading cancellation token — add `threading.Event` to `_analysis_worker` so re-scan cancels a running scan cleanly
 - [ ] Custom SC install path — surface a "Browse" option in `_scan_sc_installs` for non-standard locations

@@ -1,5 +1,16 @@
 # DEVLOG — Star Citizen Performance Tool
 
+## v3.0.0 — 2026-04-08 (post-release)
+
+### Documentation & distribution
+
+- **README rewritten** — updated from old single-screen tool description to accurate v3.0.0 wizard docs; covers all features, 4-step flow, quick start, build instructions
+- **GitHub Pages landing page** — `index.html` added to repo root; dark-mode single-page site with download button, feature grid, how-it-works steps, and footer; served at `https://diftic.github.io/StarCitizenShaderDeletion/`
+- **GitHub Release v3.0.0 published** — `ShaderCacheNuke.exe` attached as release asset; update checker in existing installs will now detect and link to this release
+- **gh CLI installed** — GitHub CLI v2.89.0 installed via winget for future release/PR/issue operations
+
+---
+
 ## v3.0.0 — 2026-04-08
 
 ### Security & Quality fixes (post red-team + code review)
