@@ -3,340 +3,705 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SC Performance Tool</title>
+  <title>ShaderCacheNuke — SC Performance Tool for Star Citizen</title>
+  <meta name="description" content="Fix Star Citizen stuttering and shader glitches in four steps. Free guided maintenance wizard for Windows — clears GPU caches, SC shader folders, and optimises system settings." />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:        #0d1117;
-      --surface:   #161b22;
-      --border:    #30363d;
-      --text:      #e6edf3;
-      --muted:     #8b949e;
-      --accent:    #4fc3f7;
-      --accent-dk: #0288d1;
-      --good:      #3fb950;
-      --warn:      #d29922;
-      --radius:    8px;
+      --bg:           #080c10;
+      --bg2:          #0d1117;
+      --surface:      #0f1923;
+      --surface2:     #152030;
+      --surface3:     #1a2a3d;
+      --border:       #1a2d40;
+      --border-lt:    #254560;
+      --text:         #cdd9e5;
+      --text-dim:     #7a9ab5;
+      --accent:       #4db8ff;
+      --accent-lt:    #82cfff;
+      --radius:       8px;
+      --radius-lg:    14px;
     }
+
+    html { scroll-behavior: smooth; }
 
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: "Segoe UI", system-ui, sans-serif;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
       font-size: 16px;
-      line-height: 1.6;
+      line-height: 1.65;
     }
 
     a { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
+    a:hover { color: var(--accent-lt); text-decoration: underline; }
 
-    /* ── Layout ── */
-    .container { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+    .container { max-width: 960px; margin: 0 auto; padding: 0 28px; }
 
-    /* ── Hero ── */
-    .hero {
-      text-align: center;
-      padding: 72px 24px 48px;
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(8,12,16,.92);
+      backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--border);
+      padding: 0 28px;
     }
-    .hero h1 { font-size: 2.4rem; font-weight: 700; letter-spacing: -0.5px; }
-    .hero h1 span { color: var(--accent); }
-    .hero p {
-      color: var(--muted);
-      font-size: 1.1rem;
-      max-width: 560px;
-      margin: 16px auto 0;
-    }
-    .badge-row {
+    .nav-inner {
+      max-width: 960px;
+      margin: 0 auto;
       display: flex;
-      justify-content: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 20px;
+      align-items: center;
+      justify-content: space-between;
+      height: 52px;
     }
-    .badge-row img { height: 22px; }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .nav-logo:hover { text-decoration: none; color: var(--accent); }
+    .nav-logo span { color: var(--accent); }
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      list-style: none;
+    }
+    .nav-links a { font-size: 0.875rem; color: var(--text-dim); text-decoration: none; }
+    .nav-links a:hover { color: var(--text); text-decoration: none; }
+    .nav-cta {
+      background: var(--accent);
+      color: #000 !important;
+      font-weight: 700;
+      font-size: 0.85rem !important;
+      padding: 7px 16px;
+      border-radius: var(--radius);
+      transition: background .15s;
+    }
+    .nav-cta:hover { background: var(--accent-lt) !important; text-decoration: none !important; }
+    @media (max-width: 600px) { .nav-links { display: none; } }
 
-    /* ── Download button ── */
-    .download-wrap { text-align: center; padding: 40px 24px; }
-    .btn-download {
+    /* ── HERO ── */
+    .hero {
+      padding: 96px 28px 72px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 12% 18%, rgba(255,255,255,.20) 0%, transparent 100%),
+        radial-gradient(1px 1px at 88% 14%, rgba(255,255,255,.18) 0%, transparent 100%),
+        radial-gradient(1px 1px at 38% 72%, rgba(255,255,255,.18) 0%, transparent 100%),
+        radial-gradient(1px 1px at 72% 52%, rgba(255,255,255,.15) 0%, transparent 100%),
+        radial-gradient(1px 1px at 25% 44%, rgba(255,255,255,.18) 0%, transparent 100%),
+        radial-gradient(1px 1px at 91% 78%, rgba(255,255,255,.15) 0%, transparent 100%),
+        radial-gradient(1px 1px at 58% 86%, rgba(255,255,255,.13) 0%, transparent 100%),
+        radial-gradient(ellipse 70% 50% at 50% 0%, rgba(77,184,255,.07) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .hero-eyebrow {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
+      gap: 7px;
+      background: rgba(77,184,255,.1);
+      border: 1px solid rgba(77,184,255,.25);
+      color: var(--accent-lt);
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 100px;
+      margin-bottom: 24px;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.15;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+    .hero h1 .highlight {
+      background: linear-gradient(90deg, var(--accent), var(--accent-lt));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      font-size: 1.1rem;
+      color: var(--text-dim);
+      max-width: 580px;
+      margin: 0 auto 36px;
+    }
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
       background: var(--accent);
       color: #000;
       font-weight: 700;
-      font-size: 1.05rem;
-      padding: 14px 32px;
+      font-size: 1rem;
+      padding: 14px 30px;
       border-radius: var(--radius);
-      transition: background 0.15s;
+      transition: background .15s, box-shadow .15s;
+      text-decoration: none;
+      box-shadow: 0 0 28px rgba(77,184,255,.22);
     }
-    .btn-download:hover { background: #81d4fa; text-decoration: none; }
-    .btn-download svg { width: 20px; height: 20px; fill: #000; }
-    .dl-note { color: var(--muted); font-size: 0.85rem; margin-top: 10px; }
-
-    /* ── Sections ── */
-    section { padding: 48px 0; border-top: 1px solid var(--border); }
-    section h2 {
-      font-size: 1.4rem;
+    .btn-primary:hover {
+      background: var(--accent-lt);
+      box-shadow: 0 0 36px rgba(77,184,255,.35);
+      text-decoration: none;
+      color: #000;
+    }
+    .btn-primary svg { width: 18px; height: 18px; fill: #000; flex-shrink: 0; }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      background: transparent;
+      border: 1px solid var(--border-lt);
+      color: var(--text);
       font-weight: 600;
-      margin-bottom: 24px;
-      color: var(--accent);
+      font-size: 1rem;
+      padding: 13px 28px;
+      border-radius: var(--radius);
+      transition: border-color .15s, color .15s;
+      text-decoration: none;
+    }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+    .btn-secondary svg { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
+    .hero-meta { margin-top: 16px; font-size: 0.82rem; color: var(--text-dim); }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 28px;
+    }
+    .stats-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 32px;
+      border-right: 1px solid var(--border);
+    }
+    .stat:last-child { border-right: none; }
+    .stat-val { font-size: 1.5rem; font-weight: 800; color: var(--accent); line-height: 1; }
+    .stat-lbl { font-size: 0.75rem; color: var(--text-dim); margin-top: 4px; text-transform: uppercase; letter-spacing: .05em; }
+    @media (max-width: 540px) {
+      .stat { padding: 8px 18px; border-right: none; border-bottom: 1px solid var(--border); width: 50%; }
     }
 
-    /* ── Feature grid ── */
+    /* ── SECTIONS ── */
+    section { padding: 72px 0; border-bottom: 1px solid var(--border); }
+    .section-header { text-align: center; margin-bottom: 48px; }
+    .section-eyebrow {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: 10px;
+    }
+    .section-header h2 {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -.4px;
+    }
+    .section-header p { color: var(--text-dim); max-width: 520px; margin: 12px auto 0; font-size: 0.95rem; }
+
+    /* ── FEATURE GRID ── */
     .feature-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
       gap: 16px;
     }
     .feature-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 20px;
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      transition: border-color .2s, background .2s;
     }
-    .feature-card .icon { font-size: 1.4rem; margin-bottom: 8px; }
-    .feature-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
-    .feature-card p  { font-size: 0.875rem; color: var(--muted); }
+    .feature-card:hover { border-color: var(--border-lt); background: var(--surface2); }
+    .feat-icon {
+      width: 42px; height: 42px;
+      border-radius: var(--radius);
+      background: var(--surface3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+      margin-bottom: 14px;
+    }
+    .feature-card h3 { font-size: 0.95rem; font-weight: 600; color: #fff; margin-bottom: 6px; }
+    .feature-card p  { font-size: 0.855rem; color: var(--text-dim); line-height: 1.55; }
 
-    /* ── Steps ── */
-    .steps { display: flex; flex-direction: column; gap: 16px; }
-    .step {
-      display: flex;
-      gap: 20px;
+    /* ── STEPS ── */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .step-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px 24px;
+      border-radius: var(--radius-lg);
+      padding: 24px 22px;
     }
     .step-num {
-      flex-shrink: 0;
       width: 36px; height: 36px;
       border-radius: 50%;
-      background: var(--accent);
+      background: linear-gradient(135deg, var(--accent), var(--accent-lt));
       color: #000;
-      font-weight: 700;
-      font-size: 1rem;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .step-body h3 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
-    .step-body p  { font-size: 0.9rem; color: var(--muted); }
-
-    /* ── When to use ── */
-    .use-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-    .use-list li {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
+      font-weight: 800;
       font-size: 0.95rem;
-      color: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 14px;
+      box-shadow: 0 0 16px rgba(77,184,255,.28);
     }
-    .use-list li::before {
-      content: "→";
-      color: var(--accent);
-      flex-shrink: 0;
+    .step-card h3 { font-size: 0.95rem; font-weight: 600; color: #fff; margin-bottom: 8px; }
+    .step-card p  { font-size: 0.855rem; color: var(--text-dim); line-height: 1.55; }
+
+    /* ── CACHE COVERAGE ── */
+    .cache-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .cache-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px 22px;
+    }
+    .cache-card-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .cache-tag {
+      font-size: 0.7rem;
       font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      letter-spacing: .03em;
+    }
+    .tag-nvidia { background: rgba(118,185,0,.15);  color: #76b900; border: 1px solid rgba(118,185,0,.3); }
+    .tag-amd    { background: rgba(237,28,36,.12);  color: #f87171; border: 1px solid rgba(237,28,36,.25); }
+    .tag-dx     { background: rgba(77,184,255,.12); color: var(--accent); border: 1px solid rgba(77,184,255,.25); }
+    .tag-sc     { background: rgba(240,136,62,.12); color: #ffa657; border: 1px solid rgba(240,136,62,.25); }
+    .cache-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .cache-list li {
+      font-size: 0.845rem;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .cache-list li::before {
+      content: "";
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      opacity: .6;
     }
 
-    /* ── Code block ── */
+    /* ── WHEN TO USE ── */
+    .use-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+    }
+    .use-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      font-size: 0.885rem;
+      color: var(--text-dim);
+      line-height: 1.55;
+    }
+    .use-card strong { color: var(--text); display: block; margin-bottom: 4px; }
+
+    /* ── NOTES ── */
+    .note-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+    }
+    .note-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid #d29922;
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      font-size: 0.875rem;
+      color: var(--text-dim);
+      line-height: 1.55;
+    }
+    .note-card strong { color: var(--text); display: block; margin-bottom: 4px; }
+
+    /* ── FROM SOURCE ── */
     pre {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px 20px;
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
       font-family: "Consolas", "Cascadia Code", monospace;
-      font-size: 0.875rem;
+      font-size: 0.855rem;
       overflow-x: auto;
       color: #cdd9e5;
-    }
-    code { font-family: inherit; }
-
-    /* ── Notes ── */
-    .note-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-    .note-list li {
-      font-size: 0.9rem;
-      color: var(--muted);
-      padding-left: 18px;
-      position: relative;
-    }
-    .note-list li::before {
-      content: "•";
-      position: absolute; left: 0;
-      color: var(--accent);
+      line-height: 1.7;
     }
 
-    /* ── Footer ── */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 28px 0;
+    /* ── CTA BANNER ── */
+    .cta-banner {
+      background: linear-gradient(135deg, var(--surface2) 0%, var(--surface3) 100%);
+      border: 1px solid var(--border-lt);
+      border-radius: var(--radius-lg);
+      padding: 52px 40px;
       text-align: center;
-      color: var(--muted);
-      font-size: 0.85rem;
+      margin: 72px 0;
+      position: relative;
+      overflow: hidden;
     }
-    footer a { color: var(--muted); }
-    footer a:hover { color: var(--accent); }
+    .cta-banner::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 80% at 50% 120%, rgba(77,184,255,.09) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-banner h2 { font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 700; color: #fff; margin-bottom: 12px; }
+    .cta-banner p  { color: var(--text-dim); font-size: 0.975rem; max-width: 440px; margin: 0 auto 28px; }
 
-    @media (max-width: 540px) {
-      .hero h1 { font-size: 1.8rem; }
-      .step { flex-direction: column; gap: 12px; }
+    /* ── FOOTER ── */
+    footer { border-top: 1px solid var(--border); padding: 32px 28px; text-align: center; }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
     }
+    .footer-links a { color: var(--text-dim); font-size: 0.875rem; text-decoration: none; }
+    .footer-links a:hover { color: var(--accent); text-decoration: none; }
+    .footer-legal { font-size: 0.78rem; color: var(--text-dim); opacity: .6; }
   </style>
 </head>
 <body>
 
-  <!-- Hero -->
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a href="#" class="nav-logo">🧹 <span>ShaderCache</span>Nuke</a>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="#caches">Coverage</a></li>
+        <li><a href="#when-to-use">When to Use</a></li>
+        <li><a href="https://github.com/Diftic/StarCitizenShaderDeletion" target="_blank">GitHub</a></li>
+        <li>
+          <a class="nav-cta" href="https://github.com/Diftic/StarCitizenShaderDeletion/releases/latest/download/ShaderCacheNuke.exe">
+            Download
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- HERO -->
   <div class="hero">
     <div class="container">
-      <h1>SC <span>Performance Tool</span></h1>
-      <p>A guided maintenance wizard for Star Citizen — scan, optimise, and clean shader caches in four steps.</p>
-      <div class="badge-row">
-        <a href="https://buymeacoffee.com/Mallachi" target="_blank">
-          <img src="https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-orange?style=flat&logo=buy-me-a-coffee" alt="Buy Me A Coffee" />
+      <div class="hero-eyebrow">✦ Star Citizen Performance Tool &nbsp;·&nbsp; Free &amp; Open Source</div>
+      <h1>Stop the Stutter.<br><span class="highlight">Nuke the Cache.</span></h1>
+      <p class="hero-sub">
+        A guided maintenance wizard for Star Citizen. Scan your system, clear stale
+        shader caches, and optimise your settings — in four steps.
+      </p>
+      <div class="hero-actions">
+        <a class="btn-primary" href="https://github.com/Diftic/StarCitizenShaderDeletion/releases/latest/download/ShaderCacheNuke.exe">
+          <svg viewBox="0 0 16 16"><path d="M7.47 10.78a.75.75 0 0 0 1.06 0l3.75-3.75a.75.75 0 0 0-1.06-1.06L8.75 8.44V1.75a.75.75 0 0 0-1.5 0v6.69L4.78 5.97a.75.75 0 0 0-1.06 1.06l3.75 3.75ZM3.75 13a.75.75 0 0 0 0 1.5h8.5a.75.75 0 0 0 0-1.5h-8.5Z"/></svg>
+          Download v3.0.0
         </a>
-        <a href="https://github.com/Diftic/StarCitizenShaderDeletion/releases/latest" target="_blank">
-          <img src="https://img.shields.io/github/v/release/Diftic/StarCitizenShaderDeletion?label=latest&color=4fc3f7" alt="Latest Release" />
+        <a class="btn-secondary" href="https://github.com/Diftic/StarCitizenShaderDeletion" target="_blank">
+          <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          View on GitHub
         </a>
       </div>
+      <p class="hero-meta">Windows 10 / 11 &nbsp;·&nbsp; ~10 MB &nbsp;·&nbsp; Requests admin automatically &nbsp;·&nbsp; No install required</p>
     </div>
   </div>
 
-  <!-- Download -->
-  <div class="download-wrap">
-    <a class="btn-download" href="https://github.com/Diftic/StarCitizenShaderDeletion/releases/latest/download/ShaderCacheNuke.exe">
-      <svg viewBox="0 0 16 16"><path d="M7.47 10.78a.75.75 0 0 0 1.06 0l3.75-3.75a.75.75 0 0 0-1.06-1.06L8.75 8.44V1.75a.75.75 0 0 0-1.5 0v6.69L4.78 5.97a.75.75 0 0 0-1.06 1.06l3.75 3.75ZM3.75 13a.75.75 0 0 0 0 1.5h8.5a.75.75 0 0 0 0-1.5h-8.5Z"/></svg>
-      Download ShaderCacheNuke.exe
-    </a>
-    <p class="dl-note">Windows 10 / 11 &nbsp;·&nbsp; ~10 MB &nbsp;·&nbsp; Requests admin automatically &nbsp;·&nbsp; v3.0.0</p>
+  <!-- STATS BAR -->
+  <div class="stats-bar">
+    <div class="stats-inner">
+      <div class="stat"><div class="stat-val">4</div><div class="stat-lbl">SC Channels</div></div>
+      <div class="stat"><div class="stat-val">10+</div><div class="stat-lbl">Cache Types</div></div>
+      <div class="stat"><div class="stat-val">NVIDIA + AMD</div><div class="stat-lbl" style="text-align:center">GPU Support</div></div>
+      <div class="stat"><div class="stat-val">4</div><div class="stat-lbl">Steps to Clean</div></div>
+      <div class="stat"><div class="stat-val">Free</div><div class="stat-lbl">Always</div></div>
+    </div>
   </div>
 
   <div class="container">
 
-    <!-- Features -->
-    <section>
-      <h2>Features</h2>
+    <!-- FEATURES -->
+    <section id="features">
+      <div class="section-header">
+        <div class="section-eyebrow">What it does</div>
+        <h2>Everything in one guided run</h2>
+        <p>No manual folder hunting. No registry digging. ShaderCacheNuke finds it all and cleans it for you.</p>
+      </div>
       <div class="feature-grid">
         <div class="feature-card">
-          <div class="icon">🔍</div>
+          <div class="feat-icon">🔍</div>
           <h3>System Analysis</h3>
-          <p>Scans shader caches, GPU caches, temp files, HAGS, power plan, and running processes.</p>
+          <p>Full scan before anything is touched — cache sizes, running processes, HAGS status, power plan, and available RAM all in one report.</p>
         </div>
         <div class="feature-card">
-          <div class="icon">🎯</div>
-          <h3>Star Citizen Caches</h3>
-          <p>Detects all SC shader folders across every drive and channel — LIVE, PTU, EPTU, TECH-PREVIEW.</p>
+          <div class="feat-icon">🎯</div>
+          <h3>Star Citizen Shader Caches</h3>
+          <p>Detects SC shader folders across every drive and every channel — LIVE, PTU, EPTU, and TECH-PREVIEW. Nothing slips through.</p>
         </div>
         <div class="feature-card">
-          <div class="icon">🟢</div>
+          <div class="feat-icon">🟢</div>
           <h3>GPU Driver Caches</h3>
-          <p>NVIDIA DXCache, GLCache, ComputeCache, NV_Cache. AMD DxCache, GLCache, VkCache, Dx9Cache. DirectX D3DSCache.</p>
+          <p>Clears NVIDIA and AMD driver caches plus the Windows DirectX shader cache — a common culprit for post-patch stuttering.</p>
         </div>
         <div class="feature-card">
-          <div class="icon">⚙️</div>
-          <h3>System Checks</h3>
-          <p>HAGS and power plan status with one-click links to the right settings page.</p>
+          <div class="feat-icon">⚙️</div>
+          <h3>System Optimisation Checks</h3>
+          <p>Detects HAGS and power plan settings with one-click links to the exact Windows settings page. No guessing where to go.</p>
         </div>
         <div class="feature-card">
-          <div class="icon">🔒</div>
+          <div class="feat-icon">🔒</div>
           <h3>Locked File Handling</h3>
-          <p>Files in use are scheduled for deletion at next boot — nothing gets silently skipped.</p>
+          <p>Files in use are scheduled for deletion at next boot via PendingFileRenameOperations — nothing is silently skipped.</p>
         </div>
         <div class="feature-card">
-          <div class="icon">🧠</div>
+          <div class="feat-icon">🧠</div>
           <h3>Standby Memory Clear</h3>
-          <p>Purges the Windows standby list to reclaim memory before a play session.</p>
+          <p>Purges the Windows standby list to reclaim RAM before a play session. Especially effective on 16 GB systems.</p>
         </div>
         <div class="feature-card">
-          <div class="icon">🌙</div>
-          <h3>Light / Dark Theme</h3>
-          <p>Toggle between themes from the toolbar at any time.</p>
+          <div class="feat-icon">📋</div>
+          <h3>Per-Operation Results</h3>
+          <p>The results page shows pass/fail for every individual operation — bytes freed, files removed, errors flagged — so you know exactly what happened.</p>
         </div>
         <div class="feature-card">
-          <div class="icon">🔄</div>
+          <div class="feat-icon">🔄</div>
           <h3>Auto-Update Check</h3>
-          <p>Notifies you when a new release is available with a direct link to download it.</p>
+          <p>Checks GitHub for new releases on startup and offers a direct download link when one is available.</p>
         </div>
       </div>
     </section>
 
-    <!-- How it works -->
-    <section>
-      <h2>How It Works</h2>
+    <!-- HOW IT WORKS -->
+    <section id="how-it-works">
+      <div class="section-header">
+        <div class="section-eyebrow">The process</div>
+        <h2>Four steps, start to finish</h2>
+        <p>Scan first, act second. Nothing is changed until you review and confirm.</p>
+      </div>
       <div class="steps">
-        <div class="step">
+        <div class="step-card">
           <div class="step-num">1</div>
-          <div class="step-body">
-            <h3>Analysis</h3>
-            <p>The tool scans your system and produces a full report — cache sizes, running processes, HAGS and power plan status, available RAM. Nothing is changed at this step.</p>
-          </div>
+          <h3>Analysis</h3>
+          <p>Full system scan — cache sizes, running processes, HAGS, power plan, RAM. Nothing is changed at this step.</p>
         </div>
-        <div class="step">
+        <div class="step-card">
           <div class="step-num">2</div>
-          <div class="step-body">
-            <h3>Manual Actions</h3>
-            <p>Flagged items that need manual attention are listed with status indicators and direct-open buttons. HAGS disabled? Opens Graphics Settings. Wrong power plan? Opens Power Options.</p>
-          </div>
+          <h3>Manual Actions</h3>
+          <p>Items needing your attention are listed with status indicators and direct-open buttons to the right Windows settings pages.</p>
         </div>
-        <div class="step">
+        <div class="step-card">
           <div class="step-num">3</div>
-          <div class="step-body">
-            <h3>Automated Cleaning</h3>
-            <p>A checklist of everything that can be cleared automatically, pre-ticked based on what was found. Review, adjust, and click Run Cleaning.</p>
-          </div>
+          <h3>Automated Cleaning</h3>
+          <p>A pre-ticked checklist of everything that can be cleared automatically. Review, adjust if needed, and click Run Cleaning.</p>
         </div>
-        <div class="step">
+        <div class="step-card">
           <div class="step-num">4</div>
-          <div class="step-body">
-            <h3>Done</h3>
-            <p>Full per-operation summary with pass/fail results. If locked files were scheduled for reboot deletion, a restart prompt is shown.</p>
-          </div>
+          <h3>Results</h3>
+          <p>Full per-operation summary. If locked files were scheduled for boot-time deletion, a restart prompt is shown.</p>
         </div>
       </div>
     </section>
 
-    <!-- When to use -->
-    <section>
-      <h2>When to Use</h2>
-      <ul class="use-list">
-        <li>After Star Citizen patches or updates</li>
-        <li>When experiencing graphical glitches, stuttering, or shader-related issues</li>
-        <li>After GPU driver updates</li>
-        <li>Before a play session if performance has degraded</li>
-        <li>When troubleshooting unexplained FPS drops or hitching</li>
-      </ul>
+    <!-- CACHE COVERAGE -->
+    <section id="caches">
+      <div class="section-header">
+        <div class="section-eyebrow">Coverage</div>
+        <h2>Every cache location, covered</h2>
+        <p>All the locations known to cause shader-related issues in Star Citizen — detected and cleared automatically.</p>
+      </div>
+      <div class="cache-grid">
+        <div class="cache-card">
+          <div class="cache-card-title">🎮 Star Citizen <span class="cache-tag tag-sc">SC</span></div>
+          <ul class="cache-list">
+            <li>LIVE shader cache</li>
+            <li>PTU shader cache</li>
+            <li>EPTU shader cache</li>
+            <li>TECH-PREVIEW shader cache</li>
+            <li>All drives scanned automatically</li>
+          </ul>
+        </div>
+        <div class="cache-card">
+          <div class="cache-card-title">🟢 NVIDIA Driver <span class="cache-tag tag-nvidia">NVIDIA</span></div>
+          <ul class="cache-list">
+            <li>DXCache</li>
+            <li>GLCache</li>
+            <li>ComputeCache</li>
+            <li>NV_Cache</li>
+          </ul>
+        </div>
+        <div class="cache-card">
+          <div class="cache-card-title">🔴 AMD Driver <span class="cache-tag tag-amd">AMD</span></div>
+          <ul class="cache-list">
+            <li>DxCache</li>
+            <li>GLCache</li>
+            <li>VkCache (Vulkan)</li>
+            <li>Dx9Cache</li>
+          </ul>
+        </div>
+        <div class="cache-card">
+          <div class="cache-card-title">🪟 Windows / DirectX <span class="cache-tag tag-dx">DirectX</span></div>
+          <ul class="cache-list">
+            <li>D3DSCache</li>
+            <li>Standby memory list</li>
+            <li>HAGS status check</li>
+            <li>Power plan check</li>
+          </ul>
+        </div>
+      </div>
     </section>
 
-    <!-- From source -->
-    <section>
-      <h2>Run from Source</h2>
+    <!-- WHEN TO USE -->
+    <section id="when-to-use">
+      <div class="section-header">
+        <div class="section-eyebrow">Recommended usage</div>
+        <h2>When to run ShaderCacheNuke</h2>
+      </div>
+      <div class="use-grid">
+        <div class="use-card">
+          <strong>After a Star Citizen patch</strong>
+          New patches invalidate old shader data. Clearing before your first post-patch launch prevents stale shaders from compiling mid-session.
+        </div>
+        <div class="use-card">
+          <strong>After a GPU driver update</strong>
+          Driver updates change how shaders are compiled. Old cached data from the previous driver can cause glitches or hitching.
+        </div>
+        <div class="use-card">
+          <strong>Graphical glitches or corruption</strong>
+          Flickering geometry, missing textures, or visual corruption are classic signs of stale or corrupt shader cache entries.
+        </div>
+        <div class="use-card">
+          <strong>Unexplained FPS drops or stuttering</strong>
+          If performance has degraded without an obvious cause, a shader cache flush is the first thing to try before deeper investigation.
+        </div>
+        <div class="use-card">
+          <strong>Before a play session</strong>
+          Run the standby memory clear to reclaim RAM from Windows' background cache — especially useful on 16 GB systems.
+        </div>
+      </div>
+    </section>
+
+    <!-- FROM SOURCE -->
+    <section id="source">
+      <div class="section-header">
+        <div class="section-eyebrow">Developers</div>
+        <h2>Run from source</h2>
+      </div>
       <pre><code>git clone https://github.com/Diftic/StarCitizenShaderDeletion.git
 cd StarCitizenShaderDeletion
 python nuke_shaders_gui.py</code></pre>
-      <p style="margin-top:12px; color:var(--muted); font-size:0.9rem;">Requires Python 3.10+ on Windows 10 / 11.</p>
+      <p style="margin-top: 14px; color: var(--text-dim); font-size: 0.875rem;">
+        Requires Python 3.10+ on Windows 10 / 11. Run as administrator for full functionality.
+      </p>
     </section>
 
-    <!-- Notes -->
-    <section>
-      <h2>Notes</h2>
-      <ul class="note-list">
-        <li>The first SC launch after clearing shader caches will take longer as shaders recompile — this is normal.</li>
-        <li>Standby memory clear requires administrator privileges.</li>
-        <li>The tool only modifies files within known cache locations.</li>
-        <li>Not affiliated with Cloud Imperium Games or Roberts Space Industries.</li>
-      </ul>
+    <!-- NOTES -->
+    <section id="notes">
+      <div class="section-header">
+        <div class="section-eyebrow">Good to know</div>
+        <h2>Notes &amp; expectations</h2>
+      </div>
+      <div class="note-grid">
+        <div class="note-card">
+          <strong>Longer first launch after cleaning</strong>
+          Star Citizen recompiles shaders from scratch on the next launch. This is normal — the initial load will be longer, and performance improves once shaders are rebuilt.
+        </div>
+        <div class="note-card">
+          <strong>Administrator required</strong>
+          Standby memory clearing and boot-time locked file deletion require elevated privileges. The tool requests admin automatically on launch.
+        </div>
+        <div class="note-card">
+          <strong>Targeted, not destructive</strong>
+          ShaderCacheNuke only modifies files within known GPU driver and SC shader cache locations. It does not touch game files, user settings, or system files.
+        </div>
+      </div>
     </section>
+
+    <!-- CTA BANNER -->
+    <div class="cta-banner">
+      <h2>Ready to fix the stutter?</h2>
+      <p>Free download. No install. Run the exe, follow the steps, done.</p>
+      <a class="btn-primary" href="https://github.com/Diftic/StarCitizenShaderDeletion/releases/latest/download/ShaderCacheNuke.exe">
+        <svg viewBox="0 0 16 16"><path d="M7.47 10.78a.75.75 0 0 0 1.06 0l3.75-3.75a.75.75 0 0 0-1.06-1.06L8.75 8.44V1.75a.75.75 0 0 0-1.5 0v6.69L4.78 5.97a.75.75 0 0 0-1.06 1.06l3.75 3.75ZM3.75 13a.75.75 0 0 0 0 1.5h8.5a.75.75 0 0 0 0-1.5h-8.5Z"/></svg>
+        Download ShaderCacheNuke
+      </a>
+    </div>
 
   </div>
 
-  <!-- Footer -->
+  <!-- FOOTER -->
   <footer>
     <div class="container">
-      <p>
-        Made by <a href="https://buymeacoffee.com/Mallachi" target="_blank">Mallachi</a>
-        &nbsp;·&nbsp;
+      <div class="footer-links">
+        <a href="https://buymeacoffee.com/Mallachi" target="_blank">Buy Me a Coffee</a>
         <a href="https://github.com/Diftic/StarCitizenShaderDeletion" target="_blank">GitHub</a>
-        &nbsp;·&nbsp;
         <a href="https://github.com/Diftic/StarCitizenShaderDeletion/releases" target="_blank">Releases</a>
+        <a href="https://github.com/Diftic/StarCitizenShaderDeletion/issues" target="_blank">Report a Bug</a>
+      </div>
+      <p class="footer-legal">
+        Made by <a href="https://buymeacoffee.com/Mallachi" target="_blank" style="color: var(--text-dim)">Mallachi</a>
+        &nbsp;·&nbsp;
+        Not affiliated with Cloud Imperium Games or Roberts Space Industries.
       </p>
     </div>
   </footer>
