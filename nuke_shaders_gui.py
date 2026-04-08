@@ -124,11 +124,11 @@ THEMES: dict[str, dict[str, str]] = {
         "detail_fg": "#8a9ab0",        # slate — secondary text (4.67:1 on bg)
         "info_fg": "#8a9ab0",
         "dim_fg": "#8a9ab0",
-        "accent": "#ffb703",           # amber gold
-        "accent_text": "#ffb703",      # amber — works as text on dark bg (10.12:1 on log)
-        "section_fg": "#ffb703",
+        "accent": "#ffb703",           # amber gold — interactive/decorative only
+        "accent_text": "#f1f5f9",      # near-white — accent as text on dark bg
+        "section_fg": "#f1f5f9",       # near-white — section headers in content
         "disabled_fg": "#5a6878",
-        "tag_header": "#ffb703",       # 10.12:1 on log bg
+        "tag_header": "#f1f5f9",       # near-white headers in log (bold distinguishes)
         "tag_info": "#8a9ab0",
         "tag_dim": "#8a9ab0",
         "labelframe_border": "#ffb703",
