@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SC Performance Tool</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --border:    #30363d;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --accent:    #4fc3f7;
+      --accent-dk: #0288d1;
+      --good:      #3fb950;
+      --warn:      #d29922;
+      --radius:    8px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Layout ── */
+    .container { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      padding: 72px 24px 48px;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero h1 { font-size: 2.4rem; font-weight: 700; letter-spacing: -0.5px; }
+    .hero h1 span { color: var(--accent); }
+    .hero p {
+      color: var(--muted);
+      font-size: 1.1rem;
+      max-width: 560px;
+      margin: 16px auto 0;
+    }
+    .badge-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    .badge-row img { height: 22px; }
+
+    /* ── Download button ── */
+    .download-wrap { text-align: center; padding: 40px 24px; }
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--accent);
+      color: #000;
+      font-weight: 700;
+      font-size: 1.05rem;
+      padding: 14px 32px;
+      border-radius: var(--radius);
+      transition: background 0.15s;
+    }
+    .btn-download:hover { background: #81d4fa; text-decoration: none; }
+    .btn-download svg { width: 20px; height: 20px; fill: #000; }
+    .dl-note { color: var(--muted); font-size: 0.85rem; margin-top: 10px; }
+
+    /* ── Sections ── */
+    section { padding: 48px 0; border-top: 1px solid var(--border); }
+    section h2 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      color: var(--accent);
+    }
+
+    /* ── Feature grid ── */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 16px;
+    }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+    }
+    .feature-card .icon { font-size: 1.4rem; margin-bottom: 8px; }
+    .feature-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
+    .feature-card p  { font-size: 0.875rem; color: var(--muted); }
+
+    /* ── Steps ── */
+    .steps { display: flex; flex-direction: column; gap: 16px; }
+    .step {
+      display: flex;
+      gap: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #000;
+      font-weight: 700;
+      font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step-body h3 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+    .step-body p  { font-size: 0.9rem; color: var(--muted); }
+
+    /* ── When to use ── */
+    .use-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .use-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+    .use-list li::before {
+      content: "→";
+      color: var(--accent);
+      flex-shrink: 0;
+      font-weight: 600;
+    }
+
+    /* ── Code block ── */
+    pre {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      font-family: "Consolas", "Cascadia Code", monospace;
+      font-size: 0.875rem;
+      overflow-x: auto;
+      color: #cdd9e5;
+    }
+    code { font-family: inherit; }
+
+    /* ── Notes ── */
+    .note-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .note-list li {
+      font-size: 0.9rem;
+      color: var(--muted);
+      padding-left: 18px;
+      position: relative;
+    }
+    .note-list li::before {
+      content: "•";
+      position: absolute; left: 0;
+      color: var(--accent);
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 0;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    footer a { color: var(--muted); }
+    footer a:hover { color: var(--accent); }
+
+    @media (max-width: 540px) {
+      .hero h1 { font-size: 1.8rem; }
+      .step { flex-direction: column; gap: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="container">
+      <h1>SC <span>Performance Tool</span></h1>
+      <p>A guided maintenance wizard for Star Citizen — scan, optimise, and clean shader caches in four steps.</p>
+      <div class="badge-row">
+        <a href="https://buymeacoffee.com/Mallachi" target="_blank">
+          <img src="https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-orange?style=flat&logo=buy-me-a-coffee" alt="Buy Me A Coffee" />
+        </a>
+        <a href="https://github.com/Diftic/StarCitizenShaderDeletion/releases/latest" target="_blank">
+          <img src="https://img.shields.io/github/v/release/Diftic/StarCitizenShaderDeletion?label=latest&color=4fc3f7" alt="Latest Release" />
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Download -->
+  <div class="download-wrap">
+    <a class="btn-download" href="https://github.com/Diftic/StarCitizenShaderDeletion/releases/latest/download/ShaderCacheNuke.exe">
+      <svg viewBox="0 0 16 16"><path d="M7.47 10.78a.75.75 0 0 0 1.06 0l3.75-3.75a.75.75 0 0 0-1.06-1.06L8.75 8.44V1.75a.75.75 0 0 0-1.5 0v6.69L4.78 5.97a.75.75 0 0 0-1.06 1.06l3.75 3.75ZM3.75 13a.75.75 0 0 0 0 1.5h8.5a.75.75 0 0 0 0-1.5h-8.5Z"/></svg>
+      Download ShaderCacheNuke.exe
+    </a>
+    <p class="dl-note">Windows 10 / 11 &nbsp;·&nbsp; ~10 MB &nbsp;·&nbsp; Requests admin automatically &nbsp;·&nbsp; v3.0.0</p>
+  </div>
+
+  <div class="container">
+
+    <!-- Features -->
+    <section>
+      <h2>Features</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="icon">🔍</div>
+          <h3>System Analysis</h3>
+          <p>Scans shader caches, GPU caches, temp files, HAGS, power plan, and running processes.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">🎯</div>
+          <h3>Star Citizen Caches</h3>
+          <p>Detects all SC shader folders across every drive and channel — LIVE, PTU, EPTU, TECH-PREVIEW.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">🟢</div>
+          <h3>GPU Driver Caches</h3>
+          <p>NVIDIA DXCache, GLCache, ComputeCache, NV_Cache. AMD DxCache, GLCache, VkCache, Dx9Cache. DirectX D3DSCache.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">⚙️</div>
+          <h3>System Checks</h3>
+          <p>HAGS and power plan status with one-click links to the right settings page.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">🔒</div>
+          <h3>Locked File Handling</h3>
+          <p>Files in use are scheduled for deletion at next boot — nothing gets silently skipped.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">🧠</div>
+          <h3>Standby Memory Clear</h3>
+          <p>Purges the Windows standby list to reclaim memory before a play session.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">🌙</div>
+          <h3>Light / Dark Theme</h3>
+          <p>Toggle between themes from the toolbar at any time.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">🔄</div>
+          <h3>Auto-Update Check</h3>
+          <p>Notifies you when a new release is available with a direct link to download it.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section>
+      <h2>How It Works</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h3>Analysis</h3>
+            <p>The tool scans your system and produces a full report — cache sizes, running processes, HAGS and power plan status, available RAM. Nothing is changed at this step.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h3>Manual Actions</h3>
+            <p>Flagged items that need manual attention are listed with status indicators and direct-open buttons. HAGS disabled? Opens Graphics Settings. Wrong power plan? Opens Power Options.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h3>Automated Cleaning</h3>
+            <p>A checklist of everything that can be cleared automatically, pre-ticked based on what was found. Review, adjust, and click Run Cleaning.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <h3>Done</h3>
+            <p>Full per-operation summary with pass/fail results. If locked files were scheduled for reboot deletion, a restart prompt is shown.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- When to use -->
+    <section>
+      <h2>When to Use</h2>
+      <ul class="use-list">
+        <li>After Star Citizen patches or updates</li>
+        <li>When experiencing graphical glitches, stuttering, or shader-related issues</li>
+        <li>After GPU driver updates</li>
+        <li>Before a play session if performance has degraded</li>
+        <li>When troubleshooting unexplained FPS drops or hitching</li>
+      </ul>
+    </section>
+
+    <!-- From source -->
+    <section>
+      <h2>Run from Source</h2>
+      <pre><code>git clone https://github.com/Diftic/StarCitizenShaderDeletion.git
+cd StarCitizenShaderDeletion
+python nuke_shaders_gui.py</code></pre>
+      <p style="margin-top:12px; color:var(--muted); font-size:0.9rem;">Requires Python 3.10+ on Windows 10 / 11.</p>
+    </section>
+
+    <!-- Notes -->
+    <section>
+      <h2>Notes</h2>
+      <ul class="note-list">
+        <li>The first SC launch after clearing shader caches will take longer as shaders recompile — this is normal.</li>
+        <li>Standby memory clear requires administrator privileges.</li>
+        <li>The tool only modifies files within known cache locations.</li>
+        <li>Not affiliated with Cloud Imperium Games or Roberts Space Industries.</li>
+      </ul>
+    </section>
+
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>
+        Made by <a href="https://buymeacoffee.com/Mallachi" target="_blank">Mallachi</a>
+        &nbsp;·&nbsp;
+        <a href="https://github.com/Diftic/StarCitizenShaderDeletion" target="_blank">GitHub</a>
+        &nbsp;·&nbsp;
+        <a href="https://github.com/Diftic/StarCitizenShaderDeletion/releases" target="_blank">Releases</a>
+      </p>
+    </div>
+  </footer>
+
+</body>
+</html>
