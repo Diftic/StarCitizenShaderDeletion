@@ -81,12 +81,12 @@ THEMES: dict[str, dict[str, str]] = {
     "Light": {
         "bg": "#f0f0f0",
         "fg": "#000000",
-        "text_bg": "#ffffff",
+        "text_bg": "#f8fafc",          # slate-50 — softer than pure white, less glare
         "text_fg": "#111111",
         "text_insert": "#000000",
         "canvas_bg": "#f0f0f0",
-        "bar_bg": "#dbeafe",           # light sky-100 — tinted header/footer bars
-        "step_active": "#0369a1",      # sky-700, rich and saturated
+        "bar_bg": "#dbeafe",           # sky-100 — tinted header/footer bars
+        "step_active": "#0369a1",      # sky-700
         "step_done": "#475569",        # slate-600
         "step_future": "#767676",      # min WCAG AA on white
         "detail_fg": "#595959",        # 7:1 on white
@@ -99,28 +99,36 @@ THEMES: dict[str, dict[str, str]] = {
         "tag_info": "#6b6b6b",
         "tag_dim": "#767676",
         "labelframe_border": "#93c5fd", # blue-300
+        "btn_primary": "#0369a1",      # sky-700 — 5.9:1 vs white text
+        "color_good": "#166534",       # green-800 — 7.1:1 on #f8fafc
+        "color_warn": "#c2410c",       # orange-700 — 5.2:1 on #f8fafc
+        "color_issue": "#b91c1c",      # red-700 — 6.5:1 on #f8fafc
     },
     "Dark": {
         "bg": "#1e1e1e",
         "fg": "#e0e0e0",
-        "text_bg": "#1a1a2e",          # very dark blue-black for log areas
+        "text_bg": "#1a1a2e",          # dark blue-black for log areas
         "text_fg": "#d4d4d4",
         "text_insert": "#ffffff",
         "canvas_bg": "#1e1e1e",
         "bar_bg": "#0f172a",           # slate-900 — deep navy header/footer bars
-        "step_active": "#38bdf8",      # sky-400, more vibrant than #4fc3f7
+        "step_active": "#38bdf8",      # sky-400
         "step_done": "#94a3b8",        # slate-400
-        "step_future": "#8a8a8a",      # lifted from #555 — passes AA on #1e1e1e
+        "step_future": "#8a8a8a",      # passes AA on #1e1e1e
         "detail_fg": "#9e9e9e",
         "info_fg": "#9e9e9e",
-        "dim_fg": "#8a8a8a",           # lifted from #666 — passes AA on #1e1e1e
+        "dim_fg": "#8a8a8a",           # passes AA on #1e1e1e
         "accent": "#38bdf8",           # sky-400
         "section_fg": "#67e8f9",       # cyan-300 — distinct pop for section headers
         "disabled_fg": "#6e6e6e",
         "tag_header": "#38bdf8",
         "tag_info": "#9e9e9e",
-        "tag_dim": "#8a8a8a",          # lifted from #666
+        "tag_dim": "#8a8a8a",
         "labelframe_border": "#1e3a5f", # deep blue border
+        "btn_primary": "#0369a1",      # sky-700 — 5.9:1 vs white text
+        "color_good": "#4ade80",       # green-400 — 9.8:1 on #1a1a2e
+        "color_warn": "#fb923c",       # orange-400 — 7.5:1 on #1a1a2e
+        "color_issue": "#f87171",      # red-400 — 6.2:1 on #1a1a2e
     },
 }
 
@@ -1099,9 +1107,12 @@ class WizardApp:
             action: tuple[str, object] | None = None,
         ) -> None:
             i = row[0]
-            color = {"good": "#4ade80", "warning": "#fb923c", "issue": "#f87171"}.get(
-                status, "#888888"
-            )
+            c = self.theme_colors
+            color = {
+                "good": c["color_good"],
+                "warning": c["color_warn"],
+                "issue": c["color_issue"],
+            }.get(status, c["dim_fg"])
             status_text = {"good": "● OK", "warning": "● !", "issue": "● ✕"}.get(status, "●  ?")
             ttk.Label(
                 self.manual_inner, text=status_text, foreground=color,
@@ -1549,14 +1560,14 @@ class WizardApp:
 
     def _configure_log_tags(self, widget: scrolledtext.ScrolledText) -> None:
         c = self.theme_colors
-        widget.tag_configure("good", foreground="#4ade80")   # green-400
-        widget.tag_configure("warning", foreground="#fb923c") # orange-400
-        widget.tag_configure("issue", foreground="#f87171")   # red-400
+        widget.tag_configure("good", foreground=c["color_good"])
+        widget.tag_configure("warning", foreground=c["color_warn"])
+        widget.tag_configure("issue", foreground=c["color_issue"])
         widget.tag_configure("header", foreground=c["tag_header"], font=("Consolas", 11, "bold"))
         widget.tag_configure("info", foreground=c["tag_info"])
         widget.tag_configure("dim", foreground=c["tag_dim"])
-        widget.tag_configure("ok", foreground="#4ade80")
-        widget.tag_configure("fail", foreground="#f87171")
+        widget.tag_configure("ok", foreground=c["color_good"])
+        widget.tag_configure("fail", foreground=c["color_issue"])
         widget.tag_configure("hero", foreground=c["accent"], font=("Consolas", 14, "bold"))
 
     # -------------------------------------------------------------------------
@@ -1640,16 +1651,18 @@ class WizardApp:
         )
         self.style.configure(
             "Primary.TButton",
-            background=c["accent"], foreground="#ffffff",
-            bordercolor=c["accent"],
+            background=c["btn_primary"], foreground="#ffffff",
+            bordercolor=c["btn_primary"],
             font=("Segoe UI", 10, "bold"),
             focuscolor="#ffffff", focusthickness=2,
             padding=(12, 4),
         )
         self.style.map(
             "Primary.TButton",
-            background=[("active", c["step_active"]), ("pressed", c["step_done"]), ("disabled", c["step_future"])],
-            foreground=[("active", "#ffffff"), ("pressed", "#ffffff"), ("disabled", c["bg"])],
+            background=[("active", c["accent"]), ("pressed", c["step_done"]),
+                        ("disabled", c["step_future"])],
+            foreground=[("active", "#ffffff"), ("pressed", "#ffffff"),
+                        ("disabled", c["bg"])],
         )
         self.style.configure(
             "TCheckbutton", background=c["bg"], foreground=c["fg"],
