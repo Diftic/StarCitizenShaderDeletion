@@ -82,41 +82,45 @@ THEMES: dict[str, dict[str, str]] = {
         "bg": "#f0f0f0",
         "fg": "#000000",
         "text_bg": "#ffffff",
-        "text_fg": "#000000",
+        "text_fg": "#111111",
         "text_insert": "#000000",
         "canvas_bg": "#f0f0f0",
-        "step_active": "#0078D4",
-        "step_done": "#555555",
-        "step_future": "#767676",  # min WCAG AA on white
-        "detail_fg": "#595959",    # 7:1 on white
-        "info_fg": "#6b6b6b",      # 5.7:1 on white
-        "dim_fg": "#767676",       # 4.5:1 on white (AA threshold)
-        "accent": "#0078D4",
-        "section_fg": "#0078D4",
+        "bar_bg": "#dbeafe",           # light sky-100 — tinted header/footer bars
+        "step_active": "#0369a1",      # sky-700, rich and saturated
+        "step_done": "#475569",        # slate-600
+        "step_future": "#767676",      # min WCAG AA on white
+        "detail_fg": "#595959",        # 7:1 on white
+        "info_fg": "#6b6b6b",          # 5.7:1 on white
+        "dim_fg": "#767676",           # 4.5:1 on white (AA threshold)
+        "accent": "#0369a1",           # sky-700
+        "section_fg": "#0369a1",
         "disabled_fg": "#767676",
-        "tag_header": "#0078D4",
+        "tag_header": "#0369a1",
         "tag_info": "#6b6b6b",
         "tag_dim": "#767676",
+        "labelframe_border": "#93c5fd", # blue-300
     },
     "Dark": {
         "bg": "#1e1e1e",
         "fg": "#e0e0e0",
-        "text_bg": "#252526",
+        "text_bg": "#1a1a2e",          # very dark blue-black for log areas
         "text_fg": "#d4d4d4",
         "text_insert": "#ffffff",
         "canvas_bg": "#1e1e1e",
-        "step_active": "#4fc3f7",
-        "step_done": "#9e9e9e",
-        "step_future": "#8a8a8a",  # lifted from #555 — passes AA on #1e1e1e
+        "bar_bg": "#0f172a",           # slate-900 — deep navy header/footer bars
+        "step_active": "#38bdf8",      # sky-400, more vibrant than #4fc3f7
+        "step_done": "#94a3b8",        # slate-400
+        "step_future": "#8a8a8a",      # lifted from #555 — passes AA on #1e1e1e
         "detail_fg": "#9e9e9e",
         "info_fg": "#9e9e9e",
-        "dim_fg": "#8a8a8a",       # lifted from #666 — passes AA on #1e1e1e
-        "accent": "#4fc3f7",
-        "section_fg": "#4fc3f7",
+        "dim_fg": "#8a8a8a",           # lifted from #666 — passes AA on #1e1e1e
+        "accent": "#38bdf8",           # sky-400
+        "section_fg": "#67e8f9",       # cyan-300 — distinct pop for section headers
         "disabled_fg": "#6e6e6e",
-        "tag_header": "#4fc3f7",
+        "tag_header": "#38bdf8",
         "tag_info": "#9e9e9e",
-        "tag_dim": "#8a8a8a",      # lifted from #666
+        "tag_dim": "#8a8a8a",          # lifted from #666
+        "labelframe_border": "#1e3a5f", # deep blue border
     },
 }
 
@@ -641,23 +645,25 @@ class WizardApp:
         self.root.rowconfigure(1, weight=1)
 
         # Step indicator bar — progress display only, not interactive
-        bar = ttk.Frame(self.root, padding="10 10 10 0")
+        bar = ttk.Frame(self.root, style="Bar.TFrame", padding="10 10 10 0")
         bar.grid(row=0, column=0, sticky="ew")
         bar.columnconfigure(list(range(4)), weight=1)
 
         self.step_lbl: list[ttk.Label] = []
         self.step_indicators: list[tk.Frame] = []
         for i, text in enumerate(STEP_LABELS):
-            cell = ttk.Frame(bar)
+            cell = ttk.Frame(bar, style="Bar.TFrame")
             cell.grid(row=0, column=i, sticky="ew", padx=2, pady=(0, 4))
-            lbl = ttk.Label(cell, text=text, anchor="center", font=("Segoe UI", 10))
+            lbl = ttk.Label(cell, text=text, anchor="center",
+                            font=("Segoe UI", 10), style="Bar.TLabel")
             lbl.pack(fill="x")
             indicator = tk.Frame(cell, height=3)
             indicator.pack(fill="x")
             self.step_lbl.append(lbl)
             self.step_indicators.append(indicator)
 
-        self.rescan_btn = ttk.Button(bar, text="↺ Re-scan", command=self._rerun_scan)
+        self.rescan_btn = ttk.Button(bar, text="↺ Re-scan", command=self._rerun_scan,
+                                     style="Bar.TButton")
         self.rescan_btn.grid(row=0, column=4, sticky="e", padx=(8, 0))
 
         # Content area — all step frames stack here
@@ -667,17 +673,19 @@ class WizardApp:
         self.content.rowconfigure(0, weight=1)
 
         # Nav bar — Back | version (centred) | theme toggle | Next
-        nav = ttk.Frame(self.root, padding="10 4 10 10")
+        nav = ttk.Frame(self.root, style="Bar.TFrame", padding="10 4 10 10")
         nav.grid(row=2, column=0, sticky="ew")
         nav.columnconfigure(1, weight=1)
 
-        self.back_btn = ttk.Button(nav, text="← Back", command=self._go_back, state="disabled")
+        self.back_btn = ttk.Button(nav, text="← Back", command=self._go_back,
+                                   state="disabled", style="Bar.TButton")
         self.back_btn.grid(row=0, column=0)
 
-        self.ver_lbl = ttk.Label(nav, text=f"v{VERSION}", foreground="gray")
+        self.ver_lbl = ttk.Label(nav, text=f"v{VERSION}", style="Bar.TLabel")
         self.ver_lbl.grid(row=0, column=1)
 
-        self.theme_btn = ttk.Button(nav, text="☀  Light Mode", command=self._toggle_theme, width=13)
+        self.theme_btn = ttk.Button(nav, text="☀  Light Mode", command=self._toggle_theme,
+                                    width=13, style="Bar.TButton")
         self.theme_btn.grid(row=0, column=2, padx=(0, 8))
 
         self.next_btn = ttk.Button(nav, text="Next →", command=self._go_next, state="disabled")
@@ -696,7 +704,7 @@ class WizardApp:
                 indicator.configure(bg=c["step_done"])
             else:
                 lbl.configure(foreground=c["step_future"], font=("Segoe UI", 10))
-                indicator.configure(bg=c["bg"])
+                indicator.configure(bg=c["bar_bg"])
         self._update_nav()
 
     def _update_nav(self) -> None:
@@ -834,7 +842,7 @@ class WizardApp:
     def _build_cleaning_step(self) -> None:
         f = self.step_frames[STEP_CLEANING]
         f.columnconfigure(0, weight=1)
-        f.rowconfigure(2, weight=2)
+        f.rowconfigure(2, weight=1)
         f.rowconfigure(3, weight=1)
 
         ttk.Label(f, text="Automated Cleaning", font=("Segoe UI", 13, "bold")).grid(
@@ -1091,7 +1099,7 @@ class WizardApp:
             action: tuple[str, object] | None = None,
         ) -> None:
             i = row[0]
-            color = {"good": "#2ecc40", "warning": "#ff851b", "issue": "#ff4136"}.get(
+            color = {"good": "#4ade80", "warning": "#fb923c", "issue": "#f87171"}.get(
                 status, "#888888"
             )
             status_text = {"good": "● OK", "warning": "● !", "issue": "● ✕"}.get(status, "●  ?")
@@ -1541,14 +1549,14 @@ class WizardApp:
 
     def _configure_log_tags(self, widget: scrolledtext.ScrolledText) -> None:
         c = self.theme_colors
-        widget.tag_configure("good", foreground="#2ecc40")
-        widget.tag_configure("warning", foreground="#ff851b")
-        widget.tag_configure("issue", foreground="#ff4136")
+        widget.tag_configure("good", foreground="#4ade80")   # green-400
+        widget.tag_configure("warning", foreground="#fb923c") # orange-400
+        widget.tag_configure("issue", foreground="#f87171")   # red-400
         widget.tag_configure("header", foreground=c["tag_header"], font=("Consolas", 11, "bold"))
         widget.tag_configure("info", foreground=c["tag_info"])
         widget.tag_configure("dim", foreground=c["tag_dim"])
-        widget.tag_configure("ok", foreground="#2ecc40")
-        widget.tag_configure("fail", foreground="#ff4136")
+        widget.tag_configure("ok", foreground="#4ade80")
+        widget.tag_configure("fail", foreground="#f87171")
         widget.tag_configure("hero", foreground=c["accent"], font=("Consolas", 14, "bold"))
 
     # -------------------------------------------------------------------------
@@ -1604,6 +1612,22 @@ class WizardApp:
         self.style.configure(".", background=c["bg"], foreground=c["fg"])
         self.style.configure("TFrame", background=c["bg"])
         self.style.configure("TLabel", background=c["bg"], foreground=c["fg"])
+
+        # Bar styles — step indicator bar and nav bar share a tinted background
+        self.style.configure("Bar.TFrame", background=c["bar_bg"])
+        self.style.configure("Bar.TLabel", background=c["bar_bg"], foreground=c["fg"])
+        self.style.configure(
+            "Bar.TButton",
+            background=c["bar_bg"], foreground=c["fg"],
+            bordercolor=c["step_done"],
+            focuscolor=c["accent"], focusthickness=2,
+        )
+        self.style.map(
+            "Bar.TButton",
+            background=[("active", c["bg"]), ("pressed", c["step_done"]),
+                        ("disabled", c["bar_bg"])],
+            foreground=[("disabled", c["dim_fg"])],
+        )
         self.style.configure(
             "TButton",
             background=c["bg"], foreground=c["fg"],
@@ -1639,10 +1663,12 @@ class WizardApp:
         self.style.configure(
             "TLabelframe",
             background=c["bg"], foreground=c["fg"],
-            bordercolor=c["step_done"],
+            bordercolor=c["labelframe_border"],
         )
         self.style.configure(
-            "TLabelframe.Label", background=c["bg"], foreground=c["fg"],
+            "TLabelframe.Label",
+            background=c["bg"], foreground=c["accent"],
+            font=("Segoe UI", 9, "bold"),
         )
         self.style.configure("TSeparator", background=c["step_done"])
         self.style.configure(
@@ -1689,6 +1715,7 @@ class WizardApp:
         self.cleaning_canvas.configure(bg=c["canvas_bg"])
 
         self.analysis_status.configure(foreground=c["info_fg"])
+        self.ver_lbl.configure(foreground=c["dim_fg"])
         self.theme_btn.configure(
             text="☀  Light Mode" if theme_name == "Dark" else "◑  Dark Mode"
         )
