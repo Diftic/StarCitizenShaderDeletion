@@ -87,16 +87,16 @@ THEMES: dict[str, dict[str, str]] = {
         "canvas_bg": "#f0f0f0",
         "step_active": "#0078D4",
         "step_done": "#555555",
-        "step_future": "#aaaaaa",
-        "detail_fg": "#777777",
-        "info_fg": "#888888",
-        "dim_fg": "#aaaaaa",
+        "step_future": "#767676",  # min WCAG AA on white
+        "detail_fg": "#595959",    # 7:1 on white
+        "info_fg": "#6b6b6b",      # 5.7:1 on white
+        "dim_fg": "#767676",       # 4.5:1 on white (AA threshold)
         "accent": "#0078D4",
         "section_fg": "#0078D4",
-        "disabled_fg": "#aaaaaa",
+        "disabled_fg": "#767676",
         "tag_header": "#0078D4",
-        "tag_info": "#888888",
-        "tag_dim": "#aaaaaa",
+        "tag_info": "#6b6b6b",
+        "tag_dim": "#767676",
     },
     "Dark": {
         "bg": "#1e1e1e",
@@ -107,16 +107,16 @@ THEMES: dict[str, dict[str, str]] = {
         "canvas_bg": "#1e1e1e",
         "step_active": "#4fc3f7",
         "step_done": "#9e9e9e",
-        "step_future": "#555555",
+        "step_future": "#8a8a8a",  # lifted from #555 — passes AA on #1e1e1e
         "detail_fg": "#9e9e9e",
         "info_fg": "#9e9e9e",
-        "dim_fg": "#666666",
+        "dim_fg": "#8a8a8a",       # lifted from #666 — passes AA on #1e1e1e
         "accent": "#4fc3f7",
         "section_fg": "#4fc3f7",
-        "disabled_fg": "#555555",
+        "disabled_fg": "#6e6e6e",
         "tag_header": "#4fc3f7",
         "tag_info": "#9e9e9e",
-        "tag_dim": "#666666",
+        "tag_dim": "#8a8a8a",      # lifted from #666
     },
 }
 
@@ -640,33 +640,25 @@ class WizardApp:
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(1, weight=1)
 
-        # Step indicator
-        bar = ttk.Frame(self.root, padding="10 10 10 4")
+        # Step indicator bar — progress display only, not interactive
+        bar = ttk.Frame(self.root, padding="10 10 10 0")
         bar.grid(row=0, column=0, sticky="ew")
         bar.columnconfigure(list(range(4)), weight=1)
 
         self.step_lbl: list[ttk.Label] = []
+        self.step_indicators: list[tk.Frame] = []
         for i, text in enumerate(STEP_LABELS):
-            lbl = ttk.Label(bar, text=text, anchor="center", font=("Segoe UI", 10))
-            lbl.grid(row=0, column=i, sticky="ew", padx=2)
+            cell = ttk.Frame(bar)
+            cell.grid(row=0, column=i, sticky="ew", padx=2, pady=(0, 4))
+            lbl = ttk.Label(cell, text=text, anchor="center", font=("Segoe UI", 10))
+            lbl.pack(fill="x")
+            indicator = tk.Frame(cell, height=3)
+            indicator.pack(fill="x")
             self.step_lbl.append(lbl)
-
-        self.theme_var = tk.StringVar(value="Dark Mode")
-        theme_combo = ttk.Combobox(
-            bar, textvariable=self.theme_var,
-            values=["Light Mode", "Dark Mode"],
-            state="readonly", width=11,
-        )
-        theme_combo.grid(row=0, column=4, sticky="e", padx=(8, 4))
-        theme_combo.bind(
-            "<<ComboboxSelected>>",
-            lambda e: self._apply_theme(
-                "Light" if self.theme_var.get() == "Light Mode" else "Dark"
-            ),
-        )
+            self.step_indicators.append(indicator)
 
         self.rescan_btn = ttk.Button(bar, text="↺ Re-scan", command=self._rerun_scan)
-        self.rescan_btn.grid(row=0, column=5, sticky="e")
+        self.rescan_btn.grid(row=0, column=4, sticky="e", padx=(8, 0))
 
         # Content area — all step frames stack here
         self.content = ttk.Frame(self.root)
@@ -674,7 +666,7 @@ class WizardApp:
         self.content.columnconfigure(0, weight=1)
         self.content.rowconfigure(0, weight=1)
 
-        # Nav bar
+        # Nav bar — Back | version (centred) | theme toggle | Next
         nav = ttk.Frame(self.root, padding="10 4 10 10")
         nav.grid(row=2, column=0, sticky="ew")
         nav.columnconfigure(1, weight=1)
@@ -685,20 +677,26 @@ class WizardApp:
         self.ver_lbl = ttk.Label(nav, text=f"v{VERSION}", foreground="gray")
         self.ver_lbl.grid(row=0, column=1)
 
+        self.theme_btn = ttk.Button(nav, text="☀  Light Mode", command=self._toggle_theme, width=13)
+        self.theme_btn.grid(row=0, column=2, padx=(0, 8))
+
         self.next_btn = ttk.Button(nav, text="Next →", command=self._go_next, state="disabled")
-        self.next_btn.grid(row=0, column=2)
+        self.next_btn.grid(row=0, column=3)
 
     def _show_step(self, step: int) -> None:
         self.current_step = step
         self.step_frames[step].tkraise()
         c = self.theme_colors
-        for i, lbl in enumerate(self.step_lbl):
+        for i, (lbl, indicator) in enumerate(zip(self.step_lbl, self.step_indicators)):
             if i == step:
                 lbl.configure(foreground=c["step_active"], font=("Segoe UI", 10, "bold"))
+                indicator.configure(bg=c["step_active"])
             elif i < step:
                 lbl.configure(foreground=c["step_done"], font=("Segoe UI", 10))
+                indicator.configure(bg=c["step_done"])
             else:
                 lbl.configure(foreground=c["step_future"], font=("Segoe UI", 10))
+                indicator.configure(bg=c["bg"])
         self._update_nav()
 
     def _update_nav(self) -> None:
@@ -708,19 +706,26 @@ class WizardApp:
             self.next_btn.configure(
                 text="Proceed to Manual →",
                 state="normal" if self.analysis_done else "disabled",
+                style="Primary.TButton",
             )
         elif step == STEP_MANUAL:
             self.back_btn.configure(state="normal")
-            self.next_btn.configure(text="Proceed to Cleaning →", state="normal")
+            self.next_btn.configure(
+                text="Proceed to Cleaning →", state="normal", style="Primary.TButton",
+            )
         elif step == STEP_CLEANING:
             self.back_btn.configure(state="normal" if not self.cleaning_running else "disabled")
             self.next_btn.configure(
                 text="Run Cleaning",
                 state="normal" if not self.cleaning_running else "disabled",
+                style="Primary.TButton",
             )
         elif step == STEP_DONE:
             self.back_btn.configure(state="disabled")
-            self.next_btn.configure(text="Close", state="normal")
+            self.next_btn.configure(text="Close", state="normal", style="Primary.TButton")
+
+    def _toggle_theme(self) -> None:
+        self._apply_theme("Light" if self.current_theme == "Dark" else "Dark")
 
     def _go_back(self) -> None:
         if self.current_step == STEP_MANUAL:
@@ -770,7 +775,7 @@ class WizardApp:
         self.analysis_inner.rowconfigure(0, weight=1)
 
         self.analysis_txt = scrolledtext.ScrolledText(
-            self.analysis_inner, wrap=tk.WORD, font=("Consolas", 10), state="disabled"
+            self.analysis_inner, wrap=tk.WORD, font=("Consolas", 11), state="disabled"
         )
         self.analysis_txt.grid(row=0, column=0, sticky="nsew")
         self._configure_log_tags(self.analysis_txt)
@@ -847,8 +852,8 @@ class WizardApp:
             command=lambda: [v.set(False) for v in self.clean_vars.values()],
         ).pack(side="left")
 
-        sel = ttk.Frame(f, padding="4 0 4 4")
-        sel.grid(row=2, column=0, sticky="nsew")
+        sel = ttk.LabelFrame(f, text="Items to Clean", padding="4 0 4 4")
+        sel.grid(row=2, column=0, sticky="nsew", padx=8, pady=(0, 4))
         sel.columnconfigure(0, weight=1)
         sel.rowconfigure(0, weight=1)
 
@@ -867,16 +872,20 @@ class WizardApp:
         self.cleaning_canvas = canvas
         self._bind_mousewheel(canvas)
 
-        log_frame = ttk.LabelFrame(f, text="Log", padding="8")
+        log_frame = ttk.LabelFrame(f, text="Cleaning Log", padding="8")
         log_frame.grid(row=3, column=0, sticky="nsew", padx=8, pady=(0, 8))
         log_frame.columnconfigure(0, weight=1)
         log_frame.rowconfigure(0, weight=1)
 
         self.clean_txt = scrolledtext.ScrolledText(
-            log_frame, wrap=tk.WORD, font=("Consolas", 10), state="disabled"
+            log_frame, wrap=tk.WORD, font=("Consolas", 11), state="disabled"
         )
         self.clean_txt.grid(row=0, column=0, sticky="nsew")
         self._configure_log_tags(self.clean_txt)
+        # Placeholder — cleared when cleaning starts
+        self.clean_txt.configure(state="normal")
+        self.clean_txt.insert("1.0", "Cleaning log will appear here when you run cleaning.\n", "dim")
+        self.clean_txt.configure(state="disabled")
 
     def _build_done_step(self) -> None:
         f = self.step_frames[STEP_DONE]
@@ -888,7 +897,7 @@ class WizardApp:
         )
 
         self.done_txt = scrolledtext.ScrolledText(
-            f, wrap=tk.WORD, font=("Consolas", 10), state="disabled"
+            f, wrap=tk.WORD, font=("Consolas", 11), state="disabled"
         )
         self.done_txt.grid(row=1, column=0, sticky="nsew", padx=8, pady=(0, 8))
         self._configure_log_tags(self.done_txt)
@@ -935,6 +944,21 @@ class WizardApp:
         log("  SYSTEM ANALYSIS REPORT", "header")
         log(f"  {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", "header")
         log("=" * 56, "header")
+        log("")
+
+        # Hero summary — total reclaimable across all cache categories
+        _sc_shaders_pre = r.get("sc_shaders", [])
+        _sc_installs_pre = r.get("sc_installs", {})
+        _gpu_pre = r.get("gpu_caches", {})
+        _reclaimable = (
+            sum(s for _, _, s in _sc_shaders_pre)
+            + sum(sz for _, (_, cp, sz) in _sc_installs_pre.items() if cp)
+            + sum(sz for items in _gpu_pre.values() for _, _, _, sz, _ in items)
+            + r.get("temp_size", 0)
+            + r.get("wintemp_size", 0)
+        )
+        log(f"  ▶  {self._fmt(_reclaimable)} reclaimable", "hero")
+        log("  Clearing these caches can reduce shader stutter and improve load times.", "info")
         log("")
 
         if self.is_admin:
@@ -1070,8 +1094,10 @@ class WizardApp:
             color = {"good": "#2ecc40", "warning": "#ff851b", "issue": "#ff4136"}.get(
                 status, "#888888"
             )
+            status_text = {"good": "● OK", "warning": "● !", "issue": "● ✕"}.get(status, "●  ?")
             ttk.Label(
-                self.manual_inner, text="●", foreground=color, font=("Segoe UI", 11)
+                self.manual_inner, text=status_text, foreground=color,
+                font=("Segoe UI", 9, "bold"), anchor="center",
             ).grid(row=i, column=0, sticky="nw", padx=(10, 6), pady=(8, 0))
 
             right = ttk.Frame(self.manual_inner)
@@ -1229,7 +1255,7 @@ class WizardApp:
             ttk.Label(
                 self.cleaning_inner,
                 text=title,
-                font=("Segoe UI", 9, "bold"),
+                font=("Segoe UI", 10, "bold"),
                 foreground=self.theme_colors["section_fg"],
             ).grid(row=row[0], column=0, columnspan=2, sticky="w", padx=(10, 0), pady=(8, 2))
             row[0] += 1
@@ -1296,6 +1322,11 @@ class WizardApp:
             ).grid(row=row[0], column=0, columnspan=2, sticky="w", padx=(18, 4))
             row[0] += 1
 
+    def _clear_clean_log(self) -> None:
+        self.clean_txt.configure(state="normal")
+        self.clean_txt.delete("1.0", tk.END)
+        self.clean_txt.configure(state="disabled")
+
     def _run_cleaning(self) -> None:
         # Prompt per SC process before anything else runs
         sc_procs = self.report.get("sc_procs", {})
@@ -1325,6 +1356,7 @@ class WizardApp:
         threading.Thread(target=self._cleaning_worker, daemon=True).start()
 
     def _cleaning_worker(self) -> None:
+        self.root.after(0, self._clear_clean_log)
         r = self.report
         stats: dict = {"ok": 0, "fail": 0, "results": []}
 
@@ -1512,11 +1544,12 @@ class WizardApp:
         widget.tag_configure("good", foreground="#2ecc40")
         widget.tag_configure("warning", foreground="#ff851b")
         widget.tag_configure("issue", foreground="#ff4136")
-        widget.tag_configure("header", foreground=c["tag_header"], font=("Consolas", 10, "bold"))
+        widget.tag_configure("header", foreground=c["tag_header"], font=("Consolas", 11, "bold"))
         widget.tag_configure("info", foreground=c["tag_info"])
         widget.tag_configure("dim", foreground=c["tag_dim"])
         widget.tag_configure("ok", foreground="#2ecc40")
         widget.tag_configure("fail", foreground="#ff4136")
+        widget.tag_configure("hero", foreground=c["accent"], font=("Consolas", 14, "bold"))
 
     # -------------------------------------------------------------------------
     # Theme and icon
@@ -1575,15 +1608,34 @@ class WizardApp:
             "TButton",
             background=c["bg"], foreground=c["fg"],
             bordercolor=c["step_done"],
+            focuscolor=c["accent"], focusthickness=2,
         )
         self.style.map(
             "TButton",
             background=[("active", c["canvas_bg"]), ("pressed", c["step_done"])],
         )
         self.style.configure(
-            "TCheckbutton", background=c["bg"], foreground=c["fg"],
+            "Primary.TButton",
+            background=c["accent"], foreground="#ffffff",
+            bordercolor=c["accent"],
+            font=("Segoe UI", 10, "bold"),
+            focuscolor="#ffffff", focusthickness=2,
+            padding=(12, 4),
         )
-        self.style.map("TCheckbutton", background=[("active", c["bg"])])
+        self.style.map(
+            "Primary.TButton",
+            background=[("active", c["step_active"]), ("pressed", c["step_done"]), ("disabled", c["step_future"])],
+            foreground=[("active", "#ffffff"), ("pressed", "#ffffff"), ("disabled", c["bg"])],
+        )
+        self.style.configure(
+            "TCheckbutton", background=c["bg"], foreground=c["fg"],
+            focuscolor=c["accent"], focusthickness=2,
+        )
+        self.style.map(
+            "TCheckbutton",
+            background=[("active", c["bg"])],
+            indicatorcolor=[("selected", c["accent"]), ("!selected", c["step_done"])],
+        )
         self.style.configure(
             "TLabelframe",
             background=c["bg"], foreground=c["fg"],
@@ -1595,7 +1647,12 @@ class WizardApp:
         self.style.configure("TSeparator", background=c["step_done"])
         self.style.configure(
             "TScrollbar",
-            background=c["bg"], troughcolor=c["canvas_bg"], arrowcolor=c["fg"],
+            background=c["step_done"], troughcolor=c["canvas_bg"],
+            arrowcolor=c["bg"], width=8, arrowsize=8,
+        )
+        self.style.map(
+            "TScrollbar",
+            background=[("active", c["accent"]), ("pressed", c["step_active"])],
         )
         self.style.configure(
             "TCombobox",
@@ -1632,7 +1689,9 @@ class WizardApp:
         self.cleaning_canvas.configure(bg=c["canvas_bg"])
 
         self.analysis_status.configure(foreground=c["info_fg"])
-        self.theme_var.set("Light Mode" if theme_name == "Light" else "Dark Mode")
+        self.theme_btn.configure(
+            text="☀  Light Mode" if theme_name == "Dark" else "◑  Dark Mode"
+        )
         self._show_step(self.current_step)
 
     @staticmethod
