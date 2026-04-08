@@ -290,6 +290,33 @@
     .step-card h3 { font-size: 0.95rem; font-weight: 600; color: #fff; margin-bottom: 8px; }
     .step-card p  { font-size: 0.855rem; color: var(--text-dim); line-height: 1.55; }
 
+    /* ── SCREENSHOTS ── */
+    .screenshot-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 640px) { .screenshot-grid { grid-template-columns: 1fr; } }
+    .screenshot-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: border-color .2s;
+    }
+    .screenshot-card:hover { border-color: var(--border-lt); }
+    .screenshot-card img {
+      width: 100%;
+      display: block;
+    }
+    .screenshot-caption {
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      border-top: 1px solid var(--border);
+    }
+    .screenshot-caption strong { color: var(--text); }
+
     /* ── CACHE COVERAGE ── */
     .cache-grid {
       display: grid;
@@ -457,7 +484,7 @@
       <div class="hero-actions">
         <a class="btn-primary" href="https://github.com/Diftic/StarCitizenShaderDeletion/releases/latest/download/ShaderCacheNuke.exe">
           <svg viewBox="0 0 16 16"><path d="M7.47 10.78a.75.75 0 0 0 1.06 0l3.75-3.75a.75.75 0 0 0-1.06-1.06L8.75 8.44V1.75a.75.75 0 0 0-1.5 0v6.69L4.78 5.97a.75.75 0 0 0-1.06 1.06l3.75 3.75ZM3.75 13a.75.75 0 0 0 0 1.5h8.5a.75.75 0 0 0 0-1.5h-8.5Z"/></svg>
-          Download v3.0.0
+          Download v3.2.0
         </a>
         <a class="btn-secondary" href="https://github.com/Diftic/StarCitizenShaderDeletion" target="_blank">
           <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
@@ -529,6 +556,11 @@
           <h3>Auto-Update Check</h3>
           <p>Checks GitHub for new releases on startup and offers a direct download link when one is available.</p>
         </div>
+        <div class="feature-card">
+          <div class="feat-icon">🌙</div>
+          <h3>Light &amp; Dark Mode</h3>
+          <p>Full light and dark themes with WCAG AA-compliant contrast ratios. Toggle with one click — no restart required.</p>
+        </div>
       </div>
     </section>
 
@@ -559,6 +591,33 @@
           <div class="step-num">4</div>
           <h3>Results</h3>
           <p>Full per-operation summary. If locked files were scheduled for boot-time deletion, a restart prompt is shown.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREENSHOTS -->
+    <section id="screenshots">
+      <div class="section-header">
+        <div class="section-eyebrow">See it in action</div>
+        <h2>What it looks like</h2>
+        <p>Dark and light themes. Clean interface. Nothing hidden.</p>
+      </div>
+      <div class="screenshot-grid">
+        <div class="screenshot-card">
+          <img src="images/Screenshot%202026-04-08%20235321.png" alt="Step 1 — System Analysis report showing 3.22 GB reclaimable">
+          <div class="screenshot-caption"><strong>Step 1 — Analysis</strong> — Full system scan with reclaimable size summary</div>
+        </div>
+        <div class="screenshot-card">
+          <img src="images/Screenshot%202026-04-08%20235331.png" alt="Step 2 — Manual Actions showing HAGS, power plan and process status">
+          <div class="screenshot-caption"><strong>Step 2 — Manual Actions</strong> — Status checks with direct-open buttons</div>
+        </div>
+        <div class="screenshot-card">
+          <img src="images/Screenshot%202026-04-08%20235344.png" alt="Step 3 — Cleaning checklist with cache sizes">
+          <div class="screenshot-caption"><strong>Step 3 — Cleaning</strong> — Selective checklist with sizes; review before running</div>
+        </div>
+        <div class="screenshot-card">
+          <img src="images/Screenshot%202026-04-08%20235405.png" alt="Step 4 — Done screen showing per-operation results">
+          <div class="screenshot-caption"><strong>Step 4 — Done</strong> — Per-operation results with bytes freed and reboot status</div>
         </div>
       </div>
     </section>

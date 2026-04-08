@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Star Citizen Performance Tool v3.0.0
+Star Citizen Performance Tool v3.2.0
 4-step wizard: Analysis -> Manual Actions -> Automated Cleaning -> Done
 """
 
@@ -30,7 +30,7 @@ import tkinter as tk
 from tkinter import messagebox, scrolledtext, ttk
 
 
-VERSION = "3.0.0"
+VERSION = "3.2.0"
 GITHUB_REPO = "Diftic/StarCitizenShaderDeletion"
 
 STEP_ANALYSIS = 0
@@ -859,7 +859,6 @@ class WizardApp:
         f = self.step_frames[STEP_CLEANING]
         f.columnconfigure(0, weight=1)
         f.rowconfigure(2, weight=1)
-        f.rowconfigure(3, weight=1)
 
         ttk.Label(f, text="Automated Cleaning", font=("Segoe UI", 13, "bold")).grid(
             row=0, column=0, sticky="w", padx=12, pady=(12, 4)
@@ -896,20 +895,6 @@ class WizardApp:
         self.cleaning_canvas = canvas
         self._bind_mousewheel(canvas)
 
-        log_frame = ttk.LabelFrame(f, text="Cleaning Log", padding="8")
-        log_frame.grid(row=3, column=0, sticky="nsew", padx=8, pady=(0, 8))
-        log_frame.columnconfigure(0, weight=1)
-        log_frame.rowconfigure(0, weight=1)
-
-        self.clean_txt = scrolledtext.ScrolledText(
-            log_frame, wrap=tk.WORD, font=("Consolas", 11), state="disabled"
-        )
-        self.clean_txt.grid(row=0, column=0, sticky="nsew")
-        self._configure_log_tags(self.clean_txt)
-        # Placeholder — cleared when cleaning starts
-        self.clean_txt.configure(state="normal")
-        self.clean_txt.insert("1.0", "Cleaning log will appear here when you run cleaning.\n", "dim")
-        self.clean_txt.configure(state="disabled")
 
     def _build_done_step(self) -> None:
         f = self.step_frames[STEP_DONE]
@@ -1349,11 +1334,6 @@ class WizardApp:
             ).grid(row=row[0], column=0, columnspan=2, sticky="w", padx=(18, 4))
             row[0] += 1
 
-    def _clear_clean_log(self) -> None:
-        self.clean_txt.configure(state="normal")
-        self.clean_txt.delete("1.0", tk.END)
-        self.clean_txt.configure(state="disabled")
-
     def _run_cleaning(self) -> None:
         # Prompt per SC process before anything else runs
         sc_procs = self.report.get("sc_procs", {})
@@ -1383,12 +1363,11 @@ class WizardApp:
         threading.Thread(target=self._cleaning_worker, daemon=True).start()
 
     def _cleaning_worker(self) -> None:
-        self.root.after(0, self._clear_clean_log)
         r = self.report
         stats: dict = {"ok": 0, "fail": 0, "results": []}
 
-        def log(text: str, tag: str = "") -> None:
-            self.root.after(0, lambda t=text, g=tag: self._append(self.clean_txt, t, g))
+        def log(_text: str, _tag: str = "") -> None:
+            pass
 
         def selected(key: str) -> bool:
             v = self.clean_vars.get(key)
@@ -1726,7 +1705,7 @@ class WizardApp:
 
         self.root.configure(bg=c["bg"])
 
-        for widget in [self.analysis_txt, self.clean_txt, self.done_txt]:
+        for widget in [self.analysis_txt, self.done_txt]:
             widget.configure(
                 bg=c["text_bg"], fg=c["text_fg"],
                 insertbackground=c["text_insert"],

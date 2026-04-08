@@ -4,12 +4,13 @@
 
 - [ ] Verify GitHub Pages landing page renders correctly at `https://diftic.github.io/StarCitizenShaderDeletion/`
 
-- [ ] WCAG contrast pass for light mode log tag colours (`good`/`warning`/`issue` hardcoded hex values; move to `THEMES` dict)
+- [x] WCAG contrast pass — `color_good`/`color_warn`/`color_issue` theme-aware keys added to `THEMES` dict; 700/800-series Tailwind for light, 400-series for dark (completed v3.1.0)
 - [ ] Threading cancellation token — add `threading.Event` to `_analysis_worker` so re-scan cancels a running scan cleanly
 - [ ] Custom SC install path — surface a "Browse" option in `_scan_sc_installs` for non-standard locations
 
 - [x] Build and test compiled `.exe` with new icon + UAC elevation
-- [ ] Verify dark mode colours on high-DPI / 4K displays
+- [x] Build and test v3.1.0 `.exe` — user confirmed dark + light mode visuals correct
+- [ ] Verify colours on high-DPI / 4K displays
 - [ ] Confirm standby memory clears after privilege fix (post-restart test)
 - [ ] Confirm locked file reboot-scheduling works end-to-end after restart
 

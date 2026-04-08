@@ -5,7 +5,7 @@
 
 A guided performance maintenance tool for Star Citizen. Scans your system, walks you through manual optimisation steps, then automatically clears shader caches and GPU driver caches — all in a clean 4-step wizard.
 
-**Version:** 3.0.0  
+**Version:** 3.2.0  
 **Author:** Mallachi
 
 ---
@@ -22,7 +22,7 @@ A guided performance maintenance tool for Star Citizen. Scans your system, walks
 - 🧹 **Selective Cleaning** — Checkboxes with size display; Select All / Deselect All
 - 🔒 **Locked File Handling** — Files in use are scheduled for deletion at next boot via `MoveFileExW`
 - 🧠 **Standby Memory Clear** — Purges the Windows standby list (admin only)
-- 🌙 **Light / Dark theme**
+- 🌙 **Light / Dark theme** — WCAG AA-compliant palettes; toggle in one click with no restart
 - 🔄 **Auto-Update Check** — Notifies when a new release is available on GitHub
 
 ---
@@ -50,6 +50,21 @@ git clone https://github.com/Diftic/StarCitizenShaderDeletion.git
 cd StarCitizenShaderDeletion
 python nuke_shaders_gui.py
 ```
+
+---
+
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center"><b>Step 1 — Analysis</b><br><img src="images/Screenshot%202026-04-08%20235321.png" width="380"></td>
+    <td align="center"><b>Step 2 — Manual Actions</b><br><img src="images/Screenshot%202026-04-08%20235331.png" width="380"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Step 3 — Cleaning</b><br><img src="images/Screenshot%202026-04-08%20235344.png" width="380"></td>
+    <td align="center"><b>Step 4 — Done</b><br><img src="images/Screenshot%202026-04-08%20235405.png" width="380"></td>
+  </tr>
+</table>
 
 ---
 

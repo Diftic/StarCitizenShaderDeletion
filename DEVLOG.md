@@ -1,5 +1,41 @@
 # DEVLOG — Star Citizen Performance Tool
 
+## v3.2.0 — 2026-04-08
+
+### UI Design Overhaul — Colour System, Accessibility & Visual Polish
+
+#### Design audit
+- Conducted three-perspective design audit: sales/marketing appeal, visual design (hierarchy, Gestalt, Fitts's Law), and universal design (WCAG AA compliance)
+- Identified 19 issues across accessibility, information hierarchy, consistency, and messaging
+
+#### Fixes implemented
+- **Step indicators** — replaced text-only tabs with `tk.Frame` underline bars (3px accent colour for active, muted for inactive/done)
+- **Theme toggle** — replaced `ttk.Combobox` with `Bar.TButton` in the nav bar; no dropdown, just a one-click toggle
+- **Primary.TButton** — all primary action buttons ("Proceed", "Clean Now", "Re-scan") use a unified named style for visual consistency
+- **LabelFrame grouping** — "Items to Clean" and other panels wrapped in `ttk.LabelFrame` with accent-coloured border and label
+- **Log font** — Consolas 10 → 11pt; "hero" summary tag added (Consolas 14 bold) for the reclaimable size callout at top of report
+- **Hero report block** — `_render_analysis_report` now opens with a prominent reclaimable-space summary in the hero tag
+- **Status indicators** — `_populate_manual_ui` uses `● OK / ● ! / ● ✕` with theme-aware `color_good/warn/issue` keys
+- **Section headers** — Segoe UI 9 → 10pt in cleaning UI
+- **Equal-height panels** — `rowconfigure(weight=1)` on both cleaning panels so Items to Clean and Log share equal height at any window size
+- **Scroll anywhere** — mousewheel binds on canvas `<Enter>`/`<Leave>` so the whole panel scrolls
+
+#### Colour system
+- Full `THEMES` dict rewrite with user-defined palettes:
+  - **Light:** mint/teal/navy — `bg #e6fffb`, `bar_bg #041f2a`, `accent #00c2a8`, `btn_primary #3a506b`
+  - **Dark:** amber/navy — `bg #2b2f3a`, `bar_bg #05060a`, `accent #ffb703`, `btn_primary #ffb703`
+- New theme-aware colour keys: `bar_fg`, `accent_text`, `btn_primary_fg`, `color_good`, `color_warn`, `color_issue`
+- Two-role system: `accent` (decorative teal/amber) vs `accent_text` (readable body colour) — teal fails on light content bg so cannot double as text
+- Dark mode 3-level text hierarchy: `#c9d1d9` primary (8.66:1), `#8a9ab0` secondary (4.67:1), `#6a7888` muted
+
+#### Contrast fixes (iterative, user-tested)
+1. Primary button `#38bdf8` (sky-400, 2.14:1) → `#ffb703` amber with dark text `#05060a` (11.6:1)
+2. Light mode status colours (Tailwind 400-series, 1.5–2.8:1) → 700/800-series for light, 400-series for dark
+3. Dark mode amber text (`accent_text`, `section_fg`, `tag_header` were all amber) → `#c9d1d9`; amber restricted to interactive/decorative only
+4. Dark mode body text `#f1f5f9` (12.21:1, too harsh) → `#c9d1d9` (8.66:1, VS Code range)
+
+---
+
 ## v3.0.0 — 2026-04-08 (post-release)
 
 ### Documentation & distribution
