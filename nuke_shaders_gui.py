@@ -79,56 +79,64 @@ CONFLICT_SETTINGS: dict[str, tuple[str, str]] = {
 
 THEMES: dict[str, dict[str, str]] = {
     "Light": {
-        "bg": "#f0f0f0",
-        "fg": "#000000",
-        "text_bg": "#f8fafc",          # slate-50 — softer than pure white, less glare
-        "text_fg": "#111111",
-        "text_insert": "#000000",
-        "canvas_bg": "#f0f0f0",
-        "bar_bg": "#dbeafe",           # sky-100 — tinted header/footer bars
-        "step_active": "#0369a1",      # sky-700
-        "step_done": "#475569",        # slate-600
-        "step_future": "#767676",      # min WCAG AA on white
-        "detail_fg": "#595959",        # 7:1 on white
-        "info_fg": "#6b6b6b",          # 5.7:1 on white
-        "dim_fg": "#767676",           # 4.5:1 on white (AA threshold)
-        "accent": "#0369a1",           # sky-700
-        "section_fg": "#0369a1",
+        # Palette: #041f2a #00c2a8 #00e5ff #3a506b #e6fffb
+        "bg": "#e6fffb",               # mint — main content background
+        "fg": "#041f2a",               # dark navy — body text (16.25:1 on mint)
+        "text_bg": "#f0fffe",          # very light mint — log areas
+        "text_fg": "#041f2a",
+        "text_insert": "#041f2a",
+        "canvas_bg": "#e6fffb",
+        "bar_bg": "#041f2a",           # dark navy — step bar + nav bar
+        "bar_fg": "#00c2a8",           # teal — labels/buttons on dark bar (7.52:1)
+        "step_active": "#00e5ff",      # cyan — active step on dark bar (11.06:1)
+        "step_done": "#00c2a8",        # teal — done steps on dark bar (7.52:1)
+        "step_future": "#767676",      # grey — future steps on dark bar (5.27:1)
+        "detail_fg": "#3a506b",        # slate — secondary text on mint (7.9:1)
+        "info_fg": "#3a506b",
+        "dim_fg": "#3a506b",
+        "accent": "#00c2a8",           # teal — decorative/interactive accents
+        "accent_text": "#3a506b",      # slate — accent used as text on light bg (7.9:1)
+        "section_fg": "#3a506b",
         "disabled_fg": "#767676",
-        "tag_header": "#0369a1",
-        "tag_info": "#6b6b6b",
-        "tag_dim": "#767676",
-        "labelframe_border": "#93c5fd", # blue-300
-        "btn_primary": "#0369a1",      # sky-700 — 5.9:1 vs white text
-        "color_good": "#166534",       # green-800 — 7.1:1 on #f8fafc
-        "color_warn": "#c2410c",       # orange-700 — 5.2:1 on #f8fafc
-        "color_issue": "#b91c1c",      # red-700 — 6.5:1 on #f8fafc
+        "tag_header": "#3a506b",       # 8.05:1 on log bg
+        "tag_info": "#3a506b",
+        "tag_dim": "#3a506b",
+        "labelframe_border": "#00c2a8",
+        "btn_primary": "#041f2a",      # dark navy button — 17:1 vs white text
+        "btn_primary_fg": "#ffffff",   # white text on dark navy
+        "color_good": "#166534",       # green-800 — 8.0:1 on log bg
+        "color_warn": "#c2410c",       # orange-700 — 5.2:1 on log bg
+        "color_issue": "#b91c1c",      # red-700 — 6.5:1 on log bg
     },
     "Dark": {
-        "bg": "#1e1e1e",
-        "fg": "#e0e0e0",
-        "text_bg": "#1a1a2e",          # dark blue-black for log areas
-        "text_fg": "#d4d4d4",
-        "text_insert": "#ffffff",
-        "canvas_bg": "#1e1e1e",
-        "bar_bg": "#0f172a",           # slate-900 — deep navy header/footer bars
-        "step_active": "#38bdf8",      # sky-400
-        "step_done": "#94a3b8",        # slate-400
-        "step_future": "#8a8a8a",      # passes AA on #1e1e1e
-        "detail_fg": "#9e9e9e",
-        "info_fg": "#9e9e9e",
-        "dim_fg": "#8a8a8a",           # passes AA on #1e1e1e
-        "accent": "#38bdf8",           # sky-400
-        "section_fg": "#67e8f9",       # cyan-300 — distinct pop for section headers
-        "disabled_fg": "#6e6e6e",
-        "tag_header": "#38bdf8",
-        "tag_info": "#9e9e9e",
-        "tag_dim": "#8a8a8a",
-        "labelframe_border": "#1e3a5f", # deep blue border
-        "btn_primary": "#0369a1",      # sky-700 — 5.9:1 vs white text
-        "color_good": "#4ade80",       # green-400 — 9.8:1 on #1a1a2e
-        "color_warn": "#fb923c",       # orange-400 — 7.5:1 on #1a1a2e
-        "color_issue": "#f87171",      # red-400 — 6.2:1 on #1a1a2e
+        # Palette: #05060a #141826 #2b2f3a #ffb703 #f1f5f9
+        "bg": "#2b2f3a",               # dark grey-navy — main content background
+        "fg": "#f1f5f9",               # near-white — body text (12.21:1 on bg)
+        "text_bg": "#141826",          # very dark navy — log areas
+        "text_fg": "#f1f5f9",
+        "text_insert": "#f1f5f9",
+        "canvas_bg": "#2b2f3a",
+        "bar_bg": "#05060a",           # near-black — step bar + nav bar
+        "bar_fg": "#8a9ab0",           # muted slate — labels/buttons on bar (7.07:1)
+        "step_active": "#ffb703",      # amber gold — active step (11.6:1 on bar)
+        "step_done": "#8a9ab0",        # slate — done steps (7.07:1 on bar)
+        "step_future": "#6a7888",      # muted slate — future steps (5.2:1 on bar)
+        "detail_fg": "#8a9ab0",        # slate — secondary text (4.67:1 on bg)
+        "info_fg": "#8a9ab0",
+        "dim_fg": "#8a9ab0",
+        "accent": "#ffb703",           # amber gold
+        "accent_text": "#ffb703",      # amber — works as text on dark bg (10.12:1 on log)
+        "section_fg": "#ffb703",
+        "disabled_fg": "#5a6878",
+        "tag_header": "#ffb703",       # 10.12:1 on log bg
+        "tag_info": "#8a9ab0",
+        "tag_dim": "#8a9ab0",
+        "labelframe_border": "#ffb703",
+        "btn_primary": "#ffb703",      # amber button — 11.6:1 vs dark text
+        "btn_primary_fg": "#05060a",   # near-black text on amber
+        "color_good": "#4ade80",       # green-400 — 10.14:1 on log bg
+        "color_warn": "#fb923c",       # orange-400 — 7.81:1 on log bg
+        "color_issue": "#f87171",      # red-400 — 6.39:1 on log bg
     },
 }
 
@@ -1135,7 +1143,7 @@ class WizardApp:
                 ttk.Label(
                     right,
                     text=f"→ {instruction}",
-                    foreground=self.theme_colors["accent"],
+                    foreground=self.theme_colors["accent_text"],
                     wraplength=580,
                     justify="left",
                 ).grid(row=next_row, column=0, sticky="w")
@@ -1568,7 +1576,7 @@ class WizardApp:
         widget.tag_configure("dim", foreground=c["tag_dim"])
         widget.tag_configure("ok", foreground=c["color_good"])
         widget.tag_configure("fail", foreground=c["color_issue"])
-        widget.tag_configure("hero", foreground=c["accent"], font=("Consolas", 14, "bold"))
+        widget.tag_configure("hero", foreground=c["accent_text"], font=("Consolas", 14, "bold"))
 
     # -------------------------------------------------------------------------
     # Theme and icon
@@ -1624,20 +1632,21 @@ class WizardApp:
         self.style.configure("TFrame", background=c["bg"])
         self.style.configure("TLabel", background=c["bg"], foreground=c["fg"])
 
-        # Bar styles — step indicator bar and nav bar share a tinted background
+        # Bar styles — step indicator bar and nav bar share a distinct background
         self.style.configure("Bar.TFrame", background=c["bar_bg"])
-        self.style.configure("Bar.TLabel", background=c["bar_bg"], foreground=c["fg"])
+        self.style.configure("Bar.TLabel", background=c["bar_bg"], foreground=c["bar_fg"])
         self.style.configure(
             "Bar.TButton",
-            background=c["bar_bg"], foreground=c["fg"],
+            background=c["bar_bg"], foreground=c["bar_fg"],
             bordercolor=c["step_done"],
             focuscolor=c["accent"], focusthickness=2,
         )
         self.style.map(
             "Bar.TButton",
-            background=[("active", c["bg"]), ("pressed", c["step_done"]),
+            background=[("active", c["accent"]), ("pressed", c["step_done"]),
                         ("disabled", c["bar_bg"])],
-            foreground=[("disabled", c["dim_fg"])],
+            foreground=[("active", c["btn_primary_fg"]), ("pressed", c["bar_fg"]),
+                        ("disabled", c["step_future"])],
         )
         self.style.configure(
             "TButton",
@@ -1651,17 +1660,17 @@ class WizardApp:
         )
         self.style.configure(
             "Primary.TButton",
-            background=c["btn_primary"], foreground="#ffffff",
+            background=c["btn_primary"], foreground=c["btn_primary_fg"],
             bordercolor=c["btn_primary"],
             font=("Segoe UI", 10, "bold"),
-            focuscolor="#ffffff", focusthickness=2,
+            focuscolor=c["btn_primary_fg"], focusthickness=2,
             padding=(12, 4),
         )
         self.style.map(
             "Primary.TButton",
             background=[("active", c["accent"]), ("pressed", c["step_done"]),
                         ("disabled", c["step_future"])],
-            foreground=[("active", "#ffffff"), ("pressed", "#ffffff"),
+            foreground=[("active", c["btn_primary_fg"]), ("pressed", c["btn_primary_fg"]),
                         ("disabled", c["bg"])],
         )
         self.style.configure(
@@ -1680,7 +1689,7 @@ class WizardApp:
         )
         self.style.configure(
             "TLabelframe.Label",
-            background=c["bg"], foreground=c["accent"],
+            background=c["bg"], foreground=c["accent_text"],
             font=("Segoe UI", 9, "bold"),
         )
         self.style.configure("TSeparator", background=c["step_done"])
@@ -1728,7 +1737,7 @@ class WizardApp:
         self.cleaning_canvas.configure(bg=c["canvas_bg"])
 
         self.analysis_status.configure(foreground=c["info_fg"])
-        self.ver_lbl.configure(foreground=c["dim_fg"])
+        self.ver_lbl.configure(foreground=c["bar_fg"])
         self.theme_btn.configure(
             text="☀  Light Mode" if theme_name == "Dark" else "◑  Dark Mode"
         )
