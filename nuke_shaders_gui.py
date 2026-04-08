@@ -111,9 +111,9 @@ THEMES: dict[str, dict[str, str]] = {
     "Dark": {
         # Palette: #05060a #141826 #2b2f3a #ffb703 #f1f5f9
         "bg": "#2b2f3a",               # dark grey-navy — main content background
-        "fg": "#f1f5f9",               # near-white — body text (12.21:1 on bg)
+        "fg": "#c9d1d9",               # soft grey — body text (8.66:1 on bg, not harsh)
         "text_bg": "#141826",          # very dark navy — log areas
-        "text_fg": "#f1f5f9",
+        "text_fg": "#c9d1d9",
         "text_insert": "#f1f5f9",
         "canvas_bg": "#2b2f3a",
         "bar_bg": "#05060a",           # near-black — step bar + nav bar
@@ -125,10 +125,10 @@ THEMES: dict[str, dict[str, str]] = {
         "info_fg": "#8a9ab0",
         "dim_fg": "#8a9ab0",
         "accent": "#ffb703",           # amber gold — interactive/decorative only
-        "accent_text": "#f1f5f9",      # near-white — accent as text on dark bg
-        "section_fg": "#f1f5f9",       # near-white — section headers in content
+        "accent_text": "#c9d1d9",      # same as fg — bold provides distinction
+        "section_fg": "#c9d1d9",       # soft grey — section headers in content
         "disabled_fg": "#5a6878",
-        "tag_header": "#f1f5f9",       # near-white headers in log (bold distinguishes)
+        "tag_header": "#c9d1d9",       # soft grey headers in log (bold distinguishes)
         "tag_info": "#8a9ab0",
         "tag_dim": "#8a9ab0",
         "labelframe_border": "#ffb703",
