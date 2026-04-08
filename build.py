@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Build script for Shader Cache Nuke
+Build script for SC Performance Tool
 Creates a standalone Windows executable using PyInstaller
 """
 
@@ -55,6 +55,7 @@ def build_exe():
         "--clean",             # Clean cache before building
         f"--name={exe_name}",  # Output name
         "--noconfirm",         # Overwrite without asking
+        "--uac-admin",         # Embed UAC manifest — exe requests elevation at launch
     ]
     
     # Add icon if it exists
@@ -90,7 +91,7 @@ def build_exe():
 
 def main():
     print("=" * 50)
-    print("  Shader Cache Nuke - Build Script")
+    print("  SC Performance Tool - Build Script")
     print("=" * 50)
     print()
     
