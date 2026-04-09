@@ -449,6 +449,39 @@
     .footer-links a { color: var(--text-dim); font-size: 0.875rem; text-decoration: none; }
     .footer-links a:hover { color: var(--accent); text-decoration: none; }
     .footer-legal { font-size: 0.78rem; color: var(--text-dim); opacity: .6; }
+
+    /* ── SUPPORT ── */
+    .support-section {
+      padding: 72px 28px;
+      text-align: center;
+    }
+    .support-section p {
+      color: var(--text-dim);
+      max-width: 480px;
+      margin: 12px auto 32px;
+      font-size: 1rem;
+    }
+    .btn-bmc {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #FFDD00;
+      color: #000;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 14px 30px;
+      border-radius: var(--radius);
+      transition: background .15s, box-shadow .15s;
+      text-decoration: none;
+      box-shadow: 0 0 24px rgba(255,221,0,.2);
+    }
+    .btn-bmc:hover {
+      background: #ffe633;
+      box-shadow: 0 0 36px rgba(255,221,0,.35);
+      text-decoration: none;
+      color: #000;
+    }
+    .btn-bmc svg { width: 22px; height: 22px; flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -462,6 +495,7 @@
         <li><a href="#how-it-works">How It Works</a></li>
         <li><a href="#caches">Coverage</a></li>
         <li><a href="#when-to-use">When to Use</a></li>
+        <li><a href="#support">Support</a></li>
         <li><a href="https://github.com/Diftic/StarCitizenShaderDeletion" target="_blank">GitHub</a></li>
         <li>
           <a class="nav-cta" href="https://github.com/Diftic/StarCitizenShaderDeletion/releases/latest/download/ShaderCacheNuke.exe">
@@ -735,6 +769,19 @@ python nuke_shaders_gui.py</code></pre>
           <strong>Targeted, not destructive</strong>
           ShaderCacheNuke only modifies files within known GPU driver and SC shader cache locations. It does not touch game files, user settings, or system files.
         </div>
+      </div>
+    </section>
+
+    <!-- SUPPORT -->
+    <section id="support" class="support-section">
+      <div class="container">
+        <div class="section-eyebrow" style="display:inline-block; margin-bottom:16px;">Open Source &amp; Free Forever</div>
+        <h2 style="font-size:clamp(1.5rem,3vw,2.2rem); font-weight:800; color:#fff; margin-bottom:0;">Support the project</h2>
+        <p>ShaderCacheNuke is free and will stay that way. If it fixed your stutter and got you back in the 'verse faster, buying me a coffee helps keep it maintained.</p>
+        <a class="btn-bmc" href="https://buymeacoffee.com/Mallachi" target="_blank">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z"/></svg>
+          Buy Me a Coffee
+        </a>
       </div>
     </section>
 
